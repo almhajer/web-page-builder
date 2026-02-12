@@ -1,7 +1,126 @@
+import path from 'path';
 import * as vscode from 'vscode';
 
+// متغير عام لـ EditorPanel للوصول إليه من WebPageBuilderPanel
+let EditorPanel: vscode.WebviewPanel;
+
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Web Page Builder extension is now active!');
+    // إنشاء وعرض Editor WebviewPanel مباشرة عند تفعيل الإضافة
+    EditorPanel = vscode.window.createWebviewPanel(
+        'Editor',
+        'Editor',
+        vscode.ViewColumn.One,
+        {
+            enableScripts: true,
+            retainContextWhenHidden: true,
+            localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))]
+        }
+    );
+
+    // تعيين محتوى HTML للـ webview - محرر Monaco مع كود HTML فارغ
+    EditorPanel.webview.html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #1e1e1e; }
+        #container { height: 100vh; width: 100%; }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+
+    <script>
+        // إعداد موناكو
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
+
+        require(['vs/editor/editor.main'], function() {
+            window.editor = monaco.editor.create(document.getElementById('container'), {
+                // كود HTML فارغ كقيمة افتراضية
+                value: \`<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحة</title>
+</head>
+<body>
+
+</body>
+</html>\`,
+                language: 'html',
+                theme: 'vs-dark',
+                automaticLayout: true,
+                fontSize: 14,
+                suggestOnTriggerCharacters: true
+            });
+
+            // إرسال الكود إلى Extension عند التغيير
+            window.editor.onDidChangeModelContent(() => {
+                const vscodeApi = acquireVsCodeApi();
+                vscodeApi.postMessage({
+                    type: 'updateCode',
+                    code: window.editor.getValue()
+                });
+            });
+
+            // إرسال الكود الأولي عند تحميل المحرر
+            const vscodeApi = acquireVsCodeApi();
+            vscodeApi.postMessage({
+                type: 'updateCode',
+                code: window.editor.getValue()
+            });
+
+            // الاستماع للرسائل من Extension
+            window.addEventListener('message', event => {
+                const message = event.data;
+                switch (message.type) {
+                    case 'updateEditorValue':
+                        window.editor.setValue(message.code);
+                        break;
+                    case 'requestCurrentCode':
+                        const vscodeApi = acquireVsCodeApi();
+                        vscodeApi.postMessage({
+                            type: 'updateCode',
+                            code: window.editor.getValue()
+                        });
+                        break;
+                }
+            });
+        });
+    </script>
+</body>
+</html>`;
+
+    // معالج حدث إغلاق اللوحة
+    EditorPanel.onDidDispose(() => {
+        console.log('Editor panel was closed');
+    });
+
+    // معالج رسائل من EditorPanel - تمرير الرسائل إلى WebPageBuilderPanel
+    EditorPanel.webview.onDidReceiveMessage(
+        message => {
+            switch (message.type) {
+                case 'updateCode':
+                    if (WebPageBuilderPanel.currentPanel) {
+                        WebPageBuilderPanel.currentPanel.updateCode(message.code);
+                    }
+                    break;
+                case 'updateEditor':
+                    EditorPanel.webview.postMessage({
+                        type: 'updateEditorValue',
+                        code: message.code
+                    });
+                    break;
+            }
+        },
+        undefined,
+        context.subscriptions
+    );
+
+    // فتح Webviews مباشرة عند تفعيل الإضافة
+    WebPageBuilderPanel.createOrShow(context.extensionUri);
 
     // تسجيل أمر فتح البناء
     const openBuilderCommand = vscode.commands.registerCommand('webPageBuilder.openBuilder', () => {
@@ -33,6 +152,77 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage('الإعدادات...');
     });
 
+    // تسجيل أمر فتح Webviews Panel
+    const openWebviewsCommand = vscode.commands.registerCommand('webPageBuilder.openWebviews', () => {
+        WebPageBuilderPanel.createOrShow(context.extensionUri);
+    });
+
+    // تسجيل أوامر إجراءات المحرر الجديدة
+    const tagsCommand = vscode.commands.registerCommand('webPageBuilder.tags', () => {
+        vscode.window.showInformationMessage('قائمة الوسوم HTML...');
+        WebPageBuilderPanel.createOrShow(context.extensionUri);
+    });
+
+    const metadataCommand = vscode.commands.registerCommand('webPageBuilder.metadata', () => {
+        vscode.window.showInformationMessage('البيانات الوصفية...');
+    });
+
+    const contentCommand = vscode.commands.registerCommand('webPageBuilder.content', () => {
+        vscode.window.showInformationMessage('المحتوى...');
+    });
+
+    const mediaCommand = vscode.commands.registerCommand('webPageBuilder.media', () => {
+        vscode.window.showInformationMessage('الوسائط...');
+    });
+
+    const formsCommand = vscode.commands.registerCommand('webPageBuilder.forms', () => {
+        vscode.window.showInformationMessage('النماذج...');
+    });
+
+    const interactiveCommand = vscode.commands.registerCommand('webPageBuilder.interactive', () => {
+        vscode.window.showInformationMessage('العناصر التفاعلية...');
+    });
+
+    const textCommand = vscode.commands.registerCommand('webPageBuilder.text', () => {
+        vscode.window.showInformationMessage('النصوص...');
+    });
+
+    const embeddedCommand = vscode.commands.registerCommand('webPageBuilder.embedded', () => {
+        vscode.window.showInformationMessage('المحتوى المدمج...');
+    });
+
+    const scriptingCommand = vscode.commands.registerCommand('webPageBuilder.scripting', () => {
+        vscode.window.showInformationMessage('السكربت...');
+    });
+
+    const editingCommand = vscode.commands.registerCommand('webPageBuilder.editing', () => {
+        vscode.window.showInformationMessage('تعديل النصوص...');
+    });
+
+    const viewCommand = vscode.commands.registerCommand('webPageBuilder.view', () => {
+        vscode.window.showInformationMessage('العرض...');
+    });
+
+    const previewCommand = vscode.commands.registerCommand('webPageBuilder.preview', () => {
+        const activeEditor = vscode.window.activeTextEditor;
+        if (activeEditor) {
+            vscode.window.showInformationMessage('معاينة الصفحة...');
+            // يمكن إضافة منطق لفتح معاينة حقيقية هنا
+        }
+    });
+
+    const debugCommand = vscode.commands.registerCommand('webPageBuilder.debug', () => {
+        vscode.window.showInformationMessage('التصحيح...');
+    });
+
+    const publishCommand = vscode.commands.registerCommand('webPageBuilder.publish', () => {
+        vscode.window.showInformationMessage('النشر...');
+    });
+
+    const helpCommand = vscode.commands.registerCommand('webPageBuilder.help', () => {
+        vscode.window.showInformationMessage('المساعدة...');
+    });
+
     // تسجيل عرض السايد بار
     const sidebarProvider = new WebPageBuilderSidebarProvider(context.extensionUri);
     context.subscriptions.push(
@@ -45,7 +235,23 @@ export function activate(context: vscode.ExtensionContext) {
         newProjectCommand,
         openSourceCommand,
         openBuildCommand,
-        settingsCommand
+        settingsCommand,
+        openWebviewsCommand,
+        tagsCommand,
+        metadataCommand,
+        contentCommand,
+        mediaCommand,
+        formsCommand,
+        interactiveCommand,
+        textCommand,
+        embeddedCommand,
+        scriptingCommand,
+        editingCommand,
+        viewCommand,
+        previewCommand,
+        debugCommand,
+        publishCommand,
+        helpCommand
     );
 }
 
@@ -1370,6 +1576,186 @@ class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider {
                 });
             });
         })();
+    </script>
+</body>
+</html>`;
+    }
+}
+
+/**
+ * Webview Panel Provider
+ * يوفر لوحة Webview منفصلة تفتح في تبويب جديد
+ */
+class WebPageBuilderPanel {
+    public static currentPanel: WebPageBuilderPanel | undefined;
+    public static readonly viewType = 'webPageBuilder.webviews';
+
+    private readonly _panel: vscode.WebviewPanel;
+    private _disposables: vscode.Disposable[] = [];
+
+    public static createOrShow(extensionUri: vscode.Uri) {
+        const column = vscode.window.activeTextEditor
+            ? vscode.window.activeTextEditor.viewColumn
+            : undefined;
+
+        // إذا كان اللوحة موجودة بالفعل، قم بإظهارها
+        if (WebPageBuilderPanel.currentPanel) {
+            WebPageBuilderPanel.currentPanel._panel.reveal(column);
+            // طلب الكود الحالي من EditorPanel عند إعادة فتح التبويب
+            if (EditorPanel) {
+                EditorPanel.webview.postMessage({
+                    type: 'requestCurrentCode'
+                });
+            }
+            return;
+        }
+
+        // إنشاء لوحة جديدة
+        const panel = vscode.window.createWebviewPanel(
+            WebPageBuilderPanel.viewType,
+            'Webviews',
+            column || vscode.ViewColumn.One,
+            {
+                enableScripts: true,
+                localResourceRoots: [extensionUri],
+                retainContextWhenHidden: true
+            }
+        );
+
+        WebPageBuilderPanel.currentPanel = new WebPageBuilderPanel(panel, extensionUri);
+    }
+
+    private constructor(panel: vscode.WebviewPanel, private readonly _extensionUri: vscode.Uri) {
+        this._panel = panel;
+
+        // تعيين محتوى Webview - عرض iframe لمعاينة الكود
+        this._panel.webview.html = this._getHtmlForWebview(this._panel.webview);
+
+        // الاستماع إلى أحداث إغلاق اللوحة
+        this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+
+        // الاستماع إلى أحداث تغيير حالة العرض (عند إعادة فتح التبويب)
+        this._panel.onDidChangeViewState(() => {
+            if (this._panel.visible) {
+                // طلب الكود الحالي من EditorPanel عند إعادة فتح التبويب
+                if (EditorPanel) {
+                    EditorPanel.webview.postMessage({
+                        type: 'requestCurrentCode'
+                    });
+                }
+            }
+        }, null, this._disposables);
+
+        // الاستماع إلى الرسائل من Webview - تمرير الرسائل إلى Extension
+        this._panel.webview.onDidReceiveMessage(
+            message => {
+                switch (message.type) {
+                    case 'openBuilder':
+                        vscode.window.showInformationMessage('Opening Web Page Builder...');
+                        break;
+                    case 'newProject':
+                        vscode.window.showInformationMessage('Creating new project...');
+                        break;
+                    case 'openSource':
+                        vscode.window.showInformationMessage('Opening source files...');
+                        break;
+                    case 'insertTag':
+                        vscode.window.showInformationMessage(`<${message.tag}>`);
+                        break;
+                }
+            },
+            null,
+            this._disposables
+        );
+    }
+
+    public updateCode(code: string) {
+        // إرسال الكود إلى webview لتحديث العرض
+        this._panel.webview.postMessage({
+            type: 'codeUpdate',
+            code: code
+        });
+    }
+
+    public dispose() {
+        WebPageBuilderPanel.currentPanel = undefined;
+
+        this._panel.dispose();
+
+        while (this._disposables.length) {
+            const disposable = this._disposables.pop();
+            if (disposable) {
+                disposable.dispose();
+            }
+        }
+    }
+
+    private _getHtmlForWebview(webview: vscode.Webview): string {
+        return `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webviews - Web Page Builder</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            min-height: 100vh;
+        }
+        #preview {
+            width: 100%;
+            height: 100vh;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <iframe id="preview"></iframe>
+    <script>
+        const vscode = acquireVsCodeApi();
+        const preview = document.getElementById('preview');
+        let isUpdatingFromEditor = false;
+
+        // الاستماع للرسائل من Extension - تحديث iframe بالكود من Editor
+        window.addEventListener('message', event => {
+            const message = event.data;
+            switch (message.type) {
+                case 'codeUpdate':
+                    isUpdatingFromEditor = true;
+                    const doc = preview.contentDocument || preview.contentWindow.document;
+                    doc.open();
+                    doc.write(message.code);
+                    doc.close();
+                    isUpdatingFromEditor = false;
+                    break;
+            }
+        });
+
+        // الاستماع للتغييرات في iframe وإرسالها للـ editor
+        preview.addEventListener('load', () => {
+            const doc = preview.contentDocument || preview.contentWindow.document;
+
+            // مراقبة التغييرات في DOM
+            const observer = new MutationObserver(() => {
+                if (!isUpdatingFromEditor) {
+                    const html = doc.documentElement.outerHTML;
+                    vscode.postMessage({
+                        type: 'updateEditor',
+                        code: html
+                    });
+                }
+            });
+
+            observer.observe(doc, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                characterData: true
+            });
+        });
     </script>
 </body>
 </html>`;

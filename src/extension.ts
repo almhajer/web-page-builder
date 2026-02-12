@@ -1,6 +1,6 @@
 import path from 'path';
 import * as vscode from 'vscode';
-
+import * as fs from 'fs'; // تأكد من استيراد fs في أعلى الملف
 // متغير عام لـ EditorPanel للوصول إليه من WebPageBuilderPanel
 let EditorPanel: vscode.WebviewPanel;
 
@@ -32,12 +32,38 @@ export function activate(context: vscode.ExtensionContext) {
     <div id="container"></div>
 
     <script>
-        // إعداد موناكو
+        const vscode = acquireVsCodeApi();
+        let editor = null;
+
+        window.addEventListener('message', event => {
+            const message = event.data;
+            console.log('Webview received message:', message);
+            console.log('Editor exists:', editor !== null);
+
+            switch (message.type) {
+                case 'updateEditorValue':
+                    if (editor) {
+                        editor.setValue(message.code);
+                    }
+                    break;
+                case 'requestCurrentCode':
+                    if (editor) {
+                        const code = editor.getValue();
+                        console.log('Sending code to extension, length:', code.length);
+                        vscode.postMessage({
+                            type: 'updateCode',
+                            code: code,
+                            requestId: message.requestId
+                        });
+                    }
+                    break;
+            }
+        });
+
         require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
 
         require(['vs/editor/editor.main'], function() {
-            window.editor = monaco.editor.create(document.getElementById('container'), {
-                // كود HTML فارغ كقيمة افتراضية
+            editor = monaco.editor.create(document.getElementById('container'), {
                 value: \`<!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
@@ -56,37 +82,16 @@ export function activate(context: vscode.ExtensionContext) {
                 suggestOnTriggerCharacters: true
             });
 
-            // إرسال الكود إلى Extension عند التغيير
-            window.editor.onDidChangeModelContent(() => {
-                const vscodeApi = acquireVsCodeApi();
-                vscodeApi.postMessage({
+            editor.onDidChangeModelContent(() => {
+                vscode.postMessage({
                     type: 'updateCode',
-                    code: window.editor.getValue()
+                    code: editor.getValue()
                 });
             });
 
-            // إرسال الكود الأولي عند تحميل المحرر
-            const vscodeApi = acquireVsCodeApi();
-            vscodeApi.postMessage({
+            vscode.postMessage({
                 type: 'updateCode',
-                code: window.editor.getValue()
-            });
-
-            // الاستماع للرسائل من Extension
-            window.addEventListener('message', event => {
-                const message = event.data;
-                switch (message.type) {
-                    case 'updateEditorValue':
-                        window.editor.setValue(message.code);
-                        break;
-                    case 'requestCurrentCode':
-                        const vscodeApi = acquireVsCodeApi();
-                        vscodeApi.postMessage({
-                            type: 'updateCode',
-                            code: window.editor.getValue()
-                        });
-                        break;
-                }
+                code: editor.getValue()
             });
         });
     </script>
@@ -98,26 +103,34 @@ export function activate(context: vscode.ExtensionContext) {
         console.log('Editor panel was closed');
     });
 
+    // متغير لتخزين دالة استرجاع الكود الحالية مع requestId
+    let pendingCodeRequest: { requestId: string; resolver: (code: string) => void } | null = null;
+
     // معالج رسائل من EditorPanel - تمرير الرسائل إلى WebPageBuilderPanel
-    EditorPanel.webview.onDidReceiveMessage(
-        message => {
-            switch (message.type) {
-                case 'updateCode':
-                    if (WebPageBuilderPanel.currentPanel) {
-                        WebPageBuilderPanel.currentPanel.updateCode(message.code);
-                    }
-                    break;
-                case 'updateEditor':
-                    EditorPanel.webview.postMessage({
-                        type: 'updateEditorValue',
-                        code: message.code
-                    });
-                    break;
-            }
-        },
-        undefined,
-        context.subscriptions
-    );
+    EditorPanel.webview.onDidReceiveMessage(async (message) => {
+        console.log('Extension received message from EditorPanel:', message); // للتشخيص
+        console.log('Pending request:', pendingCodeRequest ? pendingCodeRequest.requestId : 'none'); // للتشخيص
+        switch (message.type) {
+            case 'updateCode':
+                // التحقق من وجود طلب كود معلق مع requestId مطابق
+                if (pendingCodeRequest && message.requestId === pendingCodeRequest.requestId) {
+                    console.log('Match found! Resolving promise with code...'); // للتشخيص
+                    const { resolver } = pendingCodeRequest;
+                    pendingCodeRequest = null;
+                    resolver(message.code);
+                } else if (WebPageBuilderPanel.currentPanel) {
+                    console.log('No match, updating WebPageBuilderPanel...'); // للتشخيص
+                    WebPageBuilderPanel.currentPanel.updateCode(message.code);
+                }
+                break;
+            case 'updateEditor':
+                EditorPanel.webview.postMessage({
+                    type: 'updateEditorValue',
+                    code: message.code
+                });
+                break;
+        }
+    }, undefined, context.subscriptions);
 
     // فتح Webviews مباشرة عند تفعيل الإضافة
     WebPageBuilderPanel.createOrShow(context.extensionUri);
@@ -132,15 +145,138 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage('Web Page Builder refreshed!');
     });
 
-    // تسجيل أمر إنشاء مشروع جديد
+    // تسجيل أمر تفعيل تاب editor
     const newProjectCommand = vscode.commands.registerCommand('webPageBuilder.newProject', () => {
-        vscode.window.showInformationMessage('إنشاء مشروع جديد...');
+        // تنشيط Editor إذا كان مخفياً
+        if (EditorPanel) {
+            EditorPanel.reveal(vscode.ViewColumn.One);
+        }
+    }); 
+  const saveAsCommand = vscode.commands.registerCommand('webPageBuilder.saveAs', async () => {
+    console.log('=== saveAs Command Started ===');
+    
+    // التأكد من أن EditorPanel لا يزال مفتوحاً
+    if (!EditorPanel) {
+        vscode.window.showErrorMessage('الرجاء فتح محرر الكود أولاً');
+        return;
+    }
+
+    // إظهار EditorPanel للتأكد من أنه نشط
+    EditorPanel.reveal(vscode.ViewColumn.One);
+
+    // انتظار أطول للتأكد من أن الـ webview جاهز تماماً
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // إنشاء requestId فريد
+    const requestId = Date.now().toString();
+
+    console.log('=== Starting saveAs process ===');
+    console.log('Generated requestId:', requestId);
+
+    // الحصول على الكود من EditorPanel مع معالجة الخطأ وإعادة المحاولة
+    let code: string;
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (attempts < maxAttempts) {
+        attempts++;
+        console.log(`Attempt ${attempts} of ${maxAttempts}`);
+        
+        try {
+            code = await new Promise<string>((resolve, reject) => {
+                // تعيين timeout
+                const timeout = setTimeout(() => {
+                    pendingCodeRequest = null;
+                    console.log(`ERROR: Timeout on attempt ${attempts}`);
+                    reject(new Error('Timeout'));
+                }, 15000); // مهلة 15 ثانية
+
+                // تعيين الـ pending request
+                pendingCodeRequest = {
+                    requestId: requestId + '-' + attempts,
+                    resolver: (receivedCode: string) => {
+                        clearTimeout(timeout);
+                        console.log('SUCCESS: Received code from editor');
+                        console.log('Code length:', receivedCode.length);
+                        console.log('Code preview:', receivedCode.substring(0, 100));
+                        resolve(receivedCode);
+                    }
+                };
+
+                // إرسال الطلب للـ Webview للحصول على الكود الحالي
+                console.log('Sending requestCurrentCode to EditorPanel');
+                console.log('RequestId:', requestId + '-' + attempts);
+
+                try {
+                    EditorPanel.webview.postMessage({
+                        type: 'requestCurrentCode',
+                        requestId: requestId + '-' + attempts
+                    });
+                    console.log('Message sent successfully');
+                } catch (error: any) {
+                    console.log('ERROR: Failed to send message:', error);
+                    clearTimeout(timeout);
+                    reject(error);
+                }
+            });
+            
+            // إذا نجحنا في الحصول على الكود، اخرج من الحلقة
+            console.log('Got code successfully, breaking out of retry loop');
+            break;
+            
+        } catch (error) {
+            console.log(`Attempt ${attempts} failed:`, error);
+            
+            if (attempts < maxAttempts) {
+                console.log('Waiting before retry...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            } else {
+                vscode.window.showErrorMessage('فشل الحصول على الكود من المحرر بعد عدة محاولات. الرجاء المحاولة مرة أخرى.');
+                return;
+            }
+        }
+    }
+
+    console.log('Final code received, length:', code!.length);
+
+    // فتح نافذة حفظ باسم بعد الحصول على الكود
+    const uri = await vscode.window.showSaveDialog({
+        defaultUri: vscode.Uri.file('index.html'),
+        filters: {
+            'HTML Files': ['html'],
+            'All Files': ['*']
+        }
     });
 
-    // تسجيل أمر فتح ملف المصادر
-    const openSourceCommand = vscode.commands.registerCommand('webPageBuilder.openSource', () => {
-        vscode.window.showInformationMessage('فتح ملف المصادر...');
+    if (!uri) return; // الخروج إذا لم يتم اختيار مسار
+
+    // عرض محتوى الكود الذي سيتم حفظه
+    console.log('Code to be saved:', code!); // للتشخيص
+    console.log('Code length:', code!.length); // للتشخيص
+
+    // إنشاء شريط تقدم
+    await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: 'جاري حفظ الملف...',
+        cancellable: false
+    }, async (progress) => {
+        progress.report({ increment: 0, message: 'بدء الحفظ...' });
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        progress.report({ increment: 30, message: 'جاري معالجة الكود...' });
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        progress.report({ increment: 60, message: 'جاري الكتابة إلى الملف...' });
+
+        // حفظ الكود باستخدام vscode.workspace.fs.writeFile
+        await vscode.workspace.fs.writeFile(uri, Buffer.from(code, 'utf8'));
+
+        progress.report({ increment: 100, message: 'تم الحفظ بنجاح!' });
+        await new Promise(resolve => setTimeout(resolve, 200));
     });
+
+    vscode.window.showInformationMessage(`تم حفظ الملف: ${uri.fsPath}`);
+});
 
     // تسجيل أمر فتح البناء
     const openBuildCommand = vscode.commands.registerCommand('webPageBuilder.openBuild', () => {
@@ -233,7 +369,7 @@ export function activate(context: vscode.ExtensionContext) {
         openBuilderCommand,
         refreshCommand,
         newProjectCommand,
-        openSourceCommand,
+        saveAsCommand,
         openBuildCommand,
         settingsCommand,
         openWebviewsCommand,
@@ -286,8 +422,8 @@ class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider {
                 case 'newProject':
                     vscode.window.showInformationMessage('Creating new project...');
                     break;
-                case 'openSource':
-                    vscode.window.showInformationMessage('Opening source files...');
+                case 'saveAs':
+                    vscode.window.showInformationMessage('Saving as...');
                     break;
                 case 'insertTag':
                     vscode.window.showInformationMessage(`<${data.tag}>`);
@@ -1656,8 +1792,8 @@ class WebPageBuilderPanel {
                     case 'newProject':
                         vscode.window.showInformationMessage('Creating new project...');
                         break;
-                    case 'openSource':
-                        vscode.window.showInformationMessage('Opening source files...');
+                    case 'saveAs':
+                        vscode.window.showInformationMessage('Saving as...');
                         break;
                     case 'insertTag':
                         vscode.window.showInformationMessage(`<${message.tag}>`);

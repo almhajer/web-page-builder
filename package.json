@@ -12,7 +12,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:webPageBuilder.sidebar"
+    "*"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -21,6 +21,11 @@
         "command": "webPageBuilder.openBuilder",
         "title": "Open Web Page Builder",
         "category": "Web Page Builder"
+      } ,      {
+        "command": "webPageBuilder.newProject",
+        "title": "عرض المصدر",
+        "category": "Web Page Builder",
+        "icon": "$(file-code)"
       },
       {
         "command": "webPageBuilder.refresh",
@@ -28,17 +33,12 @@
         "category": "Web Page Builder",
         "icon": "$(refresh)"
       },
+    
       {
-        "command": "webPageBuilder.newProject",
-        "title": "عرض صفحة الويب",
+        "command": "webPageBuilder.saveAs",
+        "title": "حفظ باسم",
         "category": "Web Page Builder",
-        "icon": "$(preview)"
-      },
-      {
-        "command": "webPageBuilder.openSource",
-        "title": "تصدير الكود",
-        "category": "Web Page Builder",
-        "icon": "$(go-to-file)"
+        "icon": "$(save)"
       },
       {
         "command": "webPageBuilder.openBuild",
@@ -141,6 +141,12 @@
         "title": "المساعدة",
         "category": "Web Page Builder",
         "icon": "$(question)"
+      },
+      {
+        "command": "webPageBuilder.openWebviews",
+        "title": "صفحة التصميم",
+        "category": "Web Page Builder",
+        "icon": "$(preview)"
       }
     ],
     "viewsContainers": {
@@ -164,29 +170,113 @@
     "menus": {
       "view/title": [
         {
+          "command": "webPageBuilder.openWebviews",
+          "when": "view == webPageBuilder.sidebar",
+          "group": "navigation@1"
+        },
+        {
           "command": "webPageBuilder.newProject",
           "when": "view == webPageBuilder.sidebar",
-          "group": "navigation"
+          "group": "navigation@2"
         },
         {
-          "command": "webPageBuilder.openSource",
+          "command": "webPageBuilder.saveAs",
           "when": "view == webPageBuilder.sidebar",
-          "group": "navigation"
-        },
-        {
-          "command": "webPageBuilder.openBuild",
-          "when": "view == webPageBuilder.sidebar",
-          "group": "navigation"
-        },
-        {
-          "command": "webPageBuilder.settings",
-          "when": "view == webPageBuilder.sidebar",
-          "group": "navigation"
+          "group": "navigation@3"
         },
         {
           "command": "webPageBuilder.refresh",
           "when": "view == webPageBuilder.sidebar",
-          "group": "navigation"
+          "group": "navigation@4"
+        },
+        {
+          "command": "webPageBuilder.openBuild",
+          "when": "view == webPageBuilder.sidebar",
+          "group": "navigation@5"
+        },
+        {
+          "command": "webPageBuilder.settings",
+          "when": "view == webPageBuilder.sidebar",
+          "group": "navigation@6"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "webPageBuilder.preview",
+          "when": "editorLangId == html || editorLangId == css || editorLangId == javascript || editorLangId == typescript",
+          "group": "navigation@1"
+        },
+        {
+          "command": "webPageBuilder.debug",
+          "when": "editorLangId == html || editorLangId == css || editorLangId == javascript || editorLangId == typescript",
+          "group": "navigation@2"
+        },
+        {
+          "command": "webPageBuilder.publish",
+          "when": "editorLangId == html || editorLangId == css || editorLangId == javascript || editorLangId == typescript",
+          "group": "navigation@3"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "webPageBuilder.tags",
+          "when": "editorLangId == html",
+          "group": "1_webPageBuilder@1"
+        },
+        {
+          "command": "webPageBuilder.metadata",
+          "when": "editorLangId == html",
+          "group": "1_webPageBuilder@2"
+        },
+        {
+          "command": "webPageBuilder.content",
+          "when": "editorLangId == html",
+          "group": "1_webPageBuilder@3"
+        },
+        {
+          "command": "webPageBuilder.media",
+          "when": "editorLangId == html",
+          "group": "1_webPageBuilder@4"
+        },
+        {
+          "command": "webPageBuilder.forms",
+          "when": "editorLangId == html",
+          "group": "1_webPageBuilder@5"
+        },
+        {
+          "command": "webPageBuilder.interactive",
+          "when": "editorLangId == html",
+          "group": "1_webPageBuilder@6"
+        },
+        {
+          "command": "webPageBuilder.text",
+          "when": "editorLangId == html",
+          "group": "1_webPageBuilder@7"
+        },
+        {
+          "command": "webPageBuilder.embedded",
+          "when": "editorLangId == html",
+          "group": "1_webPageBuilder@8"
+        },
+        {
+          "command": "webPageBuilder.scripting",
+          "when": "editorLangId == html",
+          "group": "1_webPageBuilder@9"
+        },
+        {
+          "command": "webPageBuilder.editing",
+          "when": "editorLangId == html",
+          "group": "1_webPageBuilder@10"
+        },
+        {
+          "command": "webPageBuilder.view",
+          "when": "editorLangId == html || editorLangId == css || editorLangId == javascript || editorLangId == typescript",
+          "group": "2_webPageBuilder@1"
+        },
+        {
+          "command": "webPageBuilder.help",
+          "when": "editorLangId == html || editorLangId == css || editorLangId == javascript || editorLangId == typescript",
+          "group": "2_webPageBuilder@2"
         }
       ]
     }

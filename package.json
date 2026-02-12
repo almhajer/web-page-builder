@@ -12,7 +12,8 @@
     "Other"
   ],
   "activationEvents": [
-    "*"
+    "onView:webPageBuilder.sidebar",
+    "onCommand:webPageBuilder.openBuilder"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -21,7 +22,8 @@
         "command": "webPageBuilder.openBuilder",
         "title": "Open Web Page Builder",
         "category": "Web Page Builder"
-      } ,      {
+      },
+      {
         "command": "webPageBuilder.newProject",
         "title": "عرض المصدر",
         "category": "Web Page Builder",
@@ -163,7 +165,8 @@
         {
           "id": "webPageBuilder.sidebar",
           "name": "Web Page Builder",
-          "type": "webview"
+          "type": "webview",
+          "icon": "icon.svg"
         }
       ]
     },

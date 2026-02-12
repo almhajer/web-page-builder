@@ -57,6 +57,12 @@ export function activate(context: vscode.ExtensionContext) {
                         });
                     }
                     break;
+                case 'requestCurrentCodeFromWebview':
+                    // طلب الكود الحالي من WebviewPanel
+                    vscode.postMessage({
+                        type: 'requestCodeFromWebview'
+                    });
+                    break;
             }
         });
 
@@ -82,13 +88,7 @@ export function activate(context: vscode.ExtensionContext) {
                 suggestOnTriggerCharacters: true
             });
 
-            editor.onDidChangeModelContent(() => {
-                vscode.postMessage({
-                    type: 'updateCode',
-                    code: editor.getValue()
-                });
-            });
-
+            // إرسال الكود الأولي فقط عند تحميل المحرر
             vscode.postMessage({
                 type: 'updateCode',
                 code: editor.getValue()
@@ -101,6 +101,14 @@ export function activate(context: vscode.ExtensionContext) {
     // معالج حدث إغلاق اللوحة
     EditorPanel.onDidDispose(() => {
         console.log('Editor panel was closed');
+    });
+
+    // معالج حدث تغيير حالة العرض للـ EditorPanel - طلب الكود من Webview عند تنشيطه
+    EditorPanel.onDidChangeViewState(() => {
+        if (EditorPanel.visible && WebPageBuilderPanel.currentPanel) {
+            console.log('Editor panel activated, requesting code from Webview');
+            WebPageBuilderPanel.currentPanel.requestCodeFromWebview();
+        }
     });
 
     // متغير لتخزين دالة استرجاع الكود الحالية مع requestId
@@ -119,15 +127,16 @@ export function activate(context: vscode.ExtensionContext) {
                     pendingCodeRequest = null;
                     resolver(message.code);
                 } else if (WebPageBuilderPanel.currentPanel) {
-                    console.log('No match, updating WebPageBuilderPanel...'); // للتشخيص
+                    // تحديث Webview إذا لم يكن هناك طلب معلق
+                    console.log('Updating WebPageBuilderPanel with code...'); // للتشخيص
                     WebPageBuilderPanel.currentPanel.updateCode(message.code);
                 }
                 break;
-            case 'updateEditor':
-                EditorPanel.webview.postMessage({
-                    type: 'updateEditorValue',
-                    code: message.code
-                });
+            case 'requestCodeFromWebview':
+                // طلب الكود الحالي من WebviewPanel
+                if (WebPageBuilderPanel.currentPanel) {
+                    WebPageBuilderPanel.currentPanel.requestCodeFromWebview();
+                }
                 break;
         }
     }, undefined, context.subscriptions);
@@ -1796,7 +1805,20 @@ class WebPageBuilderPanel {
                         vscode.window.showInformationMessage('Saving as...');
                         break;
                     case 'insertTag':
-                        vscode.window.showInformationMessage(`<${message.tag}>`);
+                        // تمرير رسالة إضافة الوسم إلى Webview
+                        this._panel.webview.postMessage({
+                            type: 'insertTag',
+                            tag: message.tag
+                        });
+                        break;
+                    case 'sendCurrentCodeToEditor':
+                        // تمرير الكود الحالي من Webview إلى EditorPanel
+                        if (EditorPanel) {
+                            EditorPanel.webview.postMessage({
+                                type: 'updateEditorValue',
+                                code: message.code
+                            });
+                        }
                         break;
                 }
             },
@@ -1810,6 +1832,13 @@ class WebPageBuilderPanel {
         this._panel.webview.postMessage({
             type: 'codeUpdate',
             code: code
+        });
+    }
+
+    public requestCodeFromWebview() {
+        // طلب الكود الحالي من webview
+        this._panel.webview.postMessage({
+            type: 'requestCurrentCodeFromWebview'
         });
     }
 
@@ -1840,57 +1869,307 @@ class WebPageBuilderPanel {
             background-color: #ffffff;
             color: #000000;
             min-height: 100vh;
+            padding: 0;
+            outline: none;
+            position: relative;
         }
-        #preview {
-            width: 100%;
-            height: 100vh;
-            border: none;
+        body:focus {
+            outline: none;
         }
+        .resizable-element {
+            position: relative;
+            cursor: move;
+        }
+        .resizable-element.selected {
+            outline: 2px solid #007acc;
+        }
+        .resize-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #007acc;
+            border: 1px solid #ffffff;
+            border-radius: 2px;
+            z-index: 1000;
+        }
+        .resize-handle.nw { top: -5px; left: -5px; cursor: nw-resize; }
+        .resize-handle.ne { top: -5px; right: -5px; cursor: ne-resize; }
+        .resize-handle.sw { bottom: -5px; left: -5px; cursor: sw-resize; }
+        .resize-handle.se { bottom: -5px; right: -5px; cursor: se-resize; }
+        .resize-handle.n { top: -5px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
+        .resize-handle.s { bottom: -5px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
+        .resize-handle.e { right: -5px; top: 50%; transform: translateY(-50%); cursor: e-resize; }
+        .resize-handle.w { left: -5px; top: 50%; transform: translateY(-50%); cursor: w-resize; }
     </style>
 </head>
 <body>
-    <iframe id="preview"></iframe>
     <script>
         const vscode = acquireVsCodeApi();
-        const preview = document.getElementById('preview');
-        let isUpdatingFromEditor = false;
 
-        // الاستماع للرسائل من Extension - تحديث iframe بالكود من Editor
+        // جعل body قابل للتعديل
+        document.body.contentEditable = 'true';
+
+        // متغيرات لتتبع العنصر المحدد
+        let selectedElement = null;
+        let isDragging = false;
+        let isResizing = false;
+        let resizeHandle = null;
+        let startX, startY, startWidth, startHeight, startLeft, startTop;
+
+        // القيمة الافتراضية
+        const defaultHtml = \`<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحة</title>
+</head>
+<body>
+
+</body>
+</html>\`;
+
+        // تحويل HTML إلى محتوى قابل للتعديل
+        function htmlToEditable(html) {
+            // استخراج محتوى body من HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const bodyContent = doc.body.innerHTML;
+            return bodyContent;
+        }
+
+        // تحويل المحتوى القابل للتعديل إلى HTML
+        function editableToHtml(content) {
+            // تنظيف المحتوى من الأسطر الفارغة في البداية والنهاية
+            let cleanedContent = content.trim();
+            
+            // إزالة مقابض التغيير الحجم قبل الحفظ
+            cleanedContent = cleanedContent.replace(/class="resizable-element selected"/g, '');
+            cleanedContent = cleanedContent.replace(/class="resizable-element"/g, '');
+            cleanedContent = cleanedContent.replace(/<div class="resize-handle[^"]*"><\\/div>/g, '');
+            cleanedContent = cleanedContent.replace(/style="[^"]*position:\\s*relative;[^"]*"/g, '');
+            
+            return \`<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحة</title>
+</head>
+<body>
+\${cleanedContent}
+</body>
+</html>\`;
+        }
+
+        // إضافة مقابض التغيير الحجم للعنصر
+        function addResizeHandles(element) {
+            // إزالة المقابض القديمة
+            removeResizeHandles();
+            
+            // إضافة class للعنصر
+            element.classList.add('resizable-element', 'selected');
+            
+            // إضافة مقابض التغيير الحجم
+            const handles = ['nw', 'ne', 'sw', 'se', 'n', 's', 'e', 'w'];
+            handles.forEach(handle => {
+                const div = document.createElement('div');
+                div.className = \`resize-handle \${handle}\`;
+                div.dataset.handle = handle;
+                element.appendChild(div);
+            });
+            
+            // جعل العنصر قابل للتحريك
+            if (!element.style.position || element.style.position === 'static') {
+                element.style.position = 'relative';
+            }
+        }
+
+        // إزالة مقابض التغيير الحجم
+        function removeResizeHandles() {
+            const selectedElements = document.querySelectorAll('.resizable-element');
+            selectedElements.forEach(el => {
+                el.classList.remove('resizable-element', 'selected');
+                const handles = el.querySelectorAll('.resize-handle');
+                handles.forEach(handle => handle.remove());
+            });
+        }
+
+        // التعامل مع النقر على العناصر
+        document.addEventListener('click', (e) => {
+            const target = e.target;
+            
+            // تجاهل النقر على المقابض
+            if (target.classList.contains('resize-handle')) {
+                return;
+            }
+            
+            // إزالة التحديد السابق
+            removeResizeHandles();
+            
+            // تحديد العنصر الجديد
+            if (target !== document.body && !target.classList.contains('resize-handle')) {
+                selectedElement = target;
+                addResizeHandles(target);
+                e.preventDefault();
+                e.stopPropagation();
+            } else {
+                selectedElement = null;
+            }
+        }, true);
+
+        // التعامل مع السحب والإفلات
+        document.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('resize-handle')) {
+                isResizing = true;
+                resizeHandle = e.target.dataset.handle;
+                selectedElement = e.target.parentElement;
+                
+                startX = e.clientX;
+                startY = e.clientY;
+                startWidth = selectedElement.offsetWidth;
+                startHeight = selectedElement.offsetHeight;
+                startLeft = selectedElement.offsetLeft;
+                startTop = selectedElement.offsetTop;
+                
+                e.preventDefault();
+                e.stopPropagation();
+            } else if (selectedElement && !e.target.classList.contains('resize-handle')) {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = selectedElement.offsetLeft;
+                startTop = selectedElement.offsetTop;
+                
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isResizing && selectedElement) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                
+                switch (resizeHandle) {
+                    case 'se':
+                        selectedElement.style.width = (startWidth + dx) + 'px';
+                        selectedElement.style.height = (startHeight + dy) + 'px';
+                        break;
+                    case 'sw':
+                        selectedElement.style.width = (startWidth - dx) + 'px';
+                        selectedElement.style.height = (startHeight + dy) + 'px';
+                        selectedElement.style.left = (startLeft + dx) + 'px';
+                        break;
+                    case 'ne':
+                        selectedElement.style.width = (startWidth + dx) + 'px';
+                        selectedElement.style.height = (startHeight - dy) + 'px';
+                        selectedElement.style.top = (startTop + dy) + 'px';
+                        break;
+                    case 'nw':
+                        selectedElement.style.width = (startWidth - dx) + 'px';
+                        selectedElement.style.height = (startHeight - dy) + 'px';
+                        selectedElement.style.left = (startLeft + dx) + 'px';
+                        selectedElement.style.top = (startTop + dy) + 'px';
+                        break;
+                    case 'n':
+                        selectedElement.style.height = (startHeight - dy) + 'px';
+                        selectedElement.style.top = (startTop + dy) + 'px';
+                        break;
+                    case 's':
+                        selectedElement.style.height = (startHeight + dy) + 'px';
+                        break;
+                    case 'e':
+                        selectedElement.style.width = (startWidth + dx) + 'px';
+                        break;
+                    case 'w':
+                        selectedElement.style.width = (startWidth - dx) + 'px';
+                        selectedElement.style.left = (startLeft + dx) + 'px';
+                        break;
+                }
+            } else if (isDragging && selectedElement) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                
+                selectedElement.style.left = (startLeft + dx) + 'px';
+                selectedElement.style.top = (startTop + dy) + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            isResizing = false;
+            resizeHandle = null;
+        });
+
+        // تعيين القيمة الافتراضية
+        document.body.innerHTML = htmlToEditable(defaultHtml);
+
+        // الاستماع للرسائل من Extension - تحديث المحرر المرئي بالكود من Editor
         window.addEventListener('message', event => {
             const message = event.data;
             switch (message.type) {
                 case 'codeUpdate':
-                    isUpdatingFromEditor = true;
-                    const doc = preview.contentDocument || preview.contentWindow.document;
-                    doc.open();
-                    doc.write(message.code);
-                    doc.close();
-                    isUpdatingFromEditor = false;
+                    document.body.innerHTML = htmlToEditable(message.code);
+                    break;
+                case 'requestCurrentCodeFromWebview':
+                    // إرسال الكود الحالي من المحرر المرئي إلى Editor
+                    const currentHtml = editableToHtml(document.body.innerHTML);
+                    vscode.postMessage({
+                        type: 'sendCurrentCodeToEditor',
+                        code: currentHtml
+                    });
+                    break;
+                case 'insertTag':
+                    // إضافة الوسم إلى المحتوى
+                    const tag = message.tag;
+                    const tagElement = document.createElement(tag);
+                    
+                    // إضافة محتوى افتراضي لبعض الوسوم
+                    if (tag === 'p') {
+                        tagElement.textContent = 'نص جديد';
+                    } else if (tag === 'div') {
+                        tagElement.style.width = '200px';
+                        tagElement.style.height = '100px';
+                        tagElement.style.border = '1px solid #ccc';
+                        tagElement.textContent = 'Div جديد';
+                    } else if (tag === 'img') {
+                        tagElement.src = 'https://via.placeholder.com/200x100';
+                        tagElement.alt = 'صورة';
+                    } else if (tag === 'a') {
+                        tagElement.href = '#';
+                        tagElement.textContent = 'رابط';
+                    } else if (tag === 'h1' || tag === 'h2' || tag === 'h3') {
+                        tagElement.textContent = \`عنوان \${tag.toUpperCase()}\`;
+                    } else if (tag === 'button') {
+                        tagElement.textContent = 'زر';
+                        tagElement.type = 'button';
+                    } else if (tag === 'input') {
+                        tagElement.type = 'text';
+                        tagElement.placeholder = 'نص';
+                    } else if (tag === 'textarea') {
+                        tagElement.placeholder = 'نص طويل';
+                        tagElement.rows = 4;
+                        tagElement.cols = 50;
+                    } else if (tag === 'table') {
+                        tagElement.style.border = '1px solid #ccc';
+                        tagElement.style.borderCollapse = 'collapse';
+                        tagElement.innerHTML = '<tr><td>خلية 1</td><td>خلية 2</td></tr><tr><td>خلية 3</td><td>خلية 4</td></tr>';
+                    } else if (tag === 'ul' || tag === 'ol') {
+                        const li = document.createElement('li');
+                        li.textContent = 'عنصر قائمة';
+                        tagElement.appendChild(li);
+                    }
+                    
+                    // إضافة العنصر إلى body
+                    document.body.appendChild(tagElement);
+                    
+                    // تحديد العنصر المضاف
+                    removeResizeHandles();
+                    selectedElement = tagElement;
+                    addResizeHandles(tagElement);
                     break;
             }
-        });
-
-        // الاستماع للتغييرات في iframe وإرسالها للـ editor
-        preview.addEventListener('load', () => {
-            const doc = preview.contentDocument || preview.contentWindow.document;
-
-            // مراقبة التغييرات في DOM
-            const observer = new MutationObserver(() => {
-                if (!isUpdatingFromEditor) {
-                    const html = doc.documentElement.outerHTML;
-                    vscode.postMessage({
-                        type: 'updateEditor',
-                        code: html
-                    });
-                }
-            });
-
-            observer.observe(doc, {
-                childList: true,
-                subtree: true,
-                attributes: true,
-                characterData: true
-            });
         });
     </script>
 </body>

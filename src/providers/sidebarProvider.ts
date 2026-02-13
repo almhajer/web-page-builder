@@ -3,6 +3,16 @@ import * as path from 'path';
 import { readFile } from 'fs/promises';
 
 /**
+ * رسائل Webview
+ */
+const WEBVIEW_MESSAGES = {
+    OPEN_BUILDER: 'openBuilder',
+    NEW_PROJECT: 'newProject',
+    SAVE_AS: 'saveAs',
+    INSERT_TAG: 'insertTag'
+} as const;
+
+/**
  * WebPageBuilderSidebarProvider - موفر Sidebar View
  */
 export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider {
@@ -14,7 +24,7 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
         webviewView: vscode.WebviewView,
         context: vscode.WebviewViewResolveContext,
         _token: vscode.CancellationToken
-    ) {
+    ): Promise<void> {
         this._view = webviewView;
 
         webviewView.webview.options = {
@@ -25,23 +35,33 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
         webviewView.webview.html = await this._getHtmlForWebview(webviewView.webview);
 
         webviewView.webview.onDidReceiveMessage((data) => {
-            switch (data.type) {
-                case 'openBuilder':
-                    vscode.window.showInformationMessage('Opening Web Page Builder...');
-                    break;
-                case 'newProject':
-                    vscode.window.showInformationMessage('Creating new project...');
-                    break;
-                case 'saveAs':
-                    vscode.window.showInformationMessage('Saving as...');
-                    break;
-                case 'insertTag':
-                    vscode.window.showInformationMessage(`<${data.tag}>`);
-                    break;
-            }
+            this.handleMessage(data);
         });
     }
 
+    /**
+     * معالج الرسائل من Webview
+     */
+    private handleMessage(data: any): void {
+        switch (data.type) {
+            case WEBVIEW_MESSAGES.OPEN_BUILDER:
+                vscode.window.showInformationMessage('Opening Web Page Builder...');
+                break;
+            case WEBVIEW_MESSAGES.NEW_PROJECT:
+                vscode.window.showInformationMessage('Creating new project...');
+                break;
+            case WEBVIEW_MESSAGES.SAVE_AS:
+                vscode.window.showInformationMessage('Saving as...');
+                break;
+            case WEBVIEW_MESSAGES.INSERT_TAG:
+                vscode.window.showInformationMessage(`<${data.tag}>`);
+                break;
+        }
+    }
+
+    /**
+     * الحصول على محتوى HTML للـ Sidebar
+     */
     private async _getHtmlForWebview(webview: vscode.Webview): Promise<string> {
         try {
             const htmlPath = path.join(this._extensionUri.fsPath, 'src', 'webviews', 'sidebarWebview.html');
@@ -55,11 +75,9 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
             ]);
 
             // استبدال روابط CSS و JS بالمحتوى المباشر
-            let finalHtml = htmlContent
+            return htmlContent
                 .replace('<link rel="stylesheet" href="sidebar.css">', `<style>${cssContent}</style>`)
                 .replace('<script src="sidebar.js"></script>', `<script>${jsContent}</script>`);
-
-            return finalHtml;
         } catch (error) {
             console.error('Error loading sidebar webview files:', error);
             return `<html><body><h1>Error loading sidebar</h1></body></html>`;

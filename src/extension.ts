@@ -4,7 +4,10 @@ import { WebPageBuilderPanel } from './panels/webPageBuilderPanel';
 import { WebPageBuilderSidebarProvider } from './providers/sidebarProvider';
 import { registerCommands } from './commands';
 
-export function activate(context: vscode.ExtensionContext) {
+/**
+ * تفعيل الإضافة
+ */
+export function activate(context: vscode.ExtensionContext): void {
     // إنشاء EditorPanel
     EditorPanel.create(context);
 
@@ -21,6 +24,9 @@ export function activate(context: vscode.ExtensionContext) {
     );
 }
 
-export function deactivate() {
+/**
+ * إلغاء تفعيل الإضافة
+ */
+export function deactivate(): void {
     console.log('Web Page Builder extension is now deactivated!');
 }

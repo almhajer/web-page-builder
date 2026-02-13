@@ -1,9 +1,47 @@
 import * as vscode from 'vscode';
 import path from 'path';
-import { readFile } from 'fs/promises';
+
+/**
+ * إعدادات EditorPanel
+ */
+const EDITOR_CONFIG = {
+    VIEW_TYPE: 'Editor',
+    TITLE: 'Editor',
+    MONACO_VERSION: '0.34.1',
+    MONACO_CDN: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor',
+    DEFAULT_HTML: `<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحة</title>
+</head>
+<body>
+
+</body>
+</html>`,
+    EDITOR_OPTIONS: {
+        language: 'html',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        fontSize: 14,
+        suggestOnTriggerCharacters: true
+    } as const
+} as const;
+
+/**
+ * رسائل Webview
+ */
+const WEBVIEW_MESSAGES = {
+    UPDATE_EDITOR_VALUE: 'updateEditorValue',
+    REQUEST_CURRENT_CODE: 'requestCurrentCode',
+    REQUEST_CODE_FROM_WEBVIEW: 'requestCurrentCodeFromWebview',
+    UPDATE_CODE: 'updateCode'
+} as const;
 
 /**
  * فئة EditorPanel لإدارة لوحة المحرر
+ * تستخدم نمط Singleton لضمان وجود مثيل واحد فقط
  */
 export class EditorPanel {
     private static instance: EditorPanel | null = null;
@@ -16,7 +54,7 @@ export class EditorPanel {
     }
 
     /**
-     * إنشاء أو الحصول على مثيل EditorPanel
+     * الحصول على المثيل الحالي
      */
     public static getInstance(): EditorPanel | null {
         return EditorPanel.instance;
@@ -31,8 +69,8 @@ export class EditorPanel {
         }
 
         const panel = vscode.window.createWebviewPanel(
-            'Editor',
-            'Editor',
+            EDITOR_CONFIG.VIEW_TYPE,
+            EDITOR_CONFIG.TITLE,
             vscode.ViewColumn.One,
             {
                 enableScripts: true,
@@ -66,7 +104,7 @@ export class EditorPanel {
      * طلب الكود من المحرر مع إعادة المحاولة
      */
     public async requestCodeWithRetry(attempt: number, maxAttempts: number): Promise<string> {
-        const requestId = Date.now().toString() + '-' + attempt;
+        const requestId = `${Date.now()}-${attempt}`;
 
         return new Promise<string>((resolve, reject) => {
             const timeout = setTimeout(() => {
@@ -84,9 +122,30 @@ export class EditorPanel {
 
             // إرسال الطلب للـ Webview للحصول على الكود الحالي
             this.panel.webview.postMessage({
-                type: 'requestCurrentCode',
+                type: WEBVIEW_MESSAGES.REQUEST_CURRENT_CODE,
                 requestId: requestId
             });
+        });
+    }
+
+    /**
+     * تحديث قيمة المحرر
+     */
+    public updateValue(code: string): void {
+        this.panel.webview.postMessage({
+            type: WEBVIEW_MESSAGES.UPDATE_EDITOR_VALUE,
+            code: code
+        });
+    }
+
+    /**
+     * طلب الكود الحالي
+     */
+    public requestCurrentCode(): void {
+        const requestId = Date.now().toString();
+        this.panel.webview.postMessage({
+            type: WEBVIEW_MESSAGES.REQUEST_CURRENT_CODE,
+            requestId: requestId
         });
     }
 
@@ -113,7 +172,7 @@ export class EditorPanel {
             console.log('Pending request:', this.pendingCodeRequest ? this.pendingCodeRequest.requestId : 'none');
             
             switch (message.type) {
-                case 'updateCode':
+                case WEBVIEW_MESSAGES.UPDATE_CODE:
                     // التحقق من وجود طلب كود معلق مع requestId مطابق
                     if (this.pendingCodeRequest && message.requestId === this.pendingCodeRequest.requestId) {
                         console.log('Match found! Resolving promise with code...');
@@ -122,31 +181,10 @@ export class EditorPanel {
                         resolver(message.code);
                     }
                     break;
-                case 'requestCodeFromWebview':
+                case WEBVIEW_MESSAGES.REQUEST_CODE_FROM_WEBVIEW:
                     // سيتم التعامل مع هذا في WebPageBuilderPanel
                     break;
             }
-        });
-    }
-
-    /**
-     * تحديث قيمة المحرر
-     */
-    public updateValue(code: string): void {
-        this.panel.webview.postMessage({
-            type: 'updateEditorValue',
-            code: code
-        });
-    }
-
-    /**
-     * طلب الكود الحالي
-     */
-    public requestCurrentCode(): void {
-        const requestId = Date.now().toString();
-        this.panel.webview.postMessage({
-            type: 'requestCurrentCode',
-            requestId: requestId
         });
     }
 }
@@ -155,11 +193,14 @@ export class EditorPanel {
  * الحصول على محتوى HTML لمحرر Monaco
  */
 async function getEditorHtml(): Promise<string> {
+    const monacoLoaderUrl = `${EDITOR_CONFIG.MONACO_CDN}/${EDITOR_CONFIG.MONACO_VERSION}/min/vs/loader.min.js`;
+    const monacoPath = `${EDITOR_CONFIG.MONACO_CDN}/${EDITOR_CONFIG.MONACO_VERSION}/min/vs`;
+
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
+    <script src="${monacoLoaderUrl}"></script>
     <style>
         body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #1e1e1e; }
         #container { height: 100vh; width: 100%; }
@@ -178,56 +219,45 @@ async function getEditorHtml(): Promise<string> {
             console.log('Editor exists:', editor !== null);
 
             switch (message.type) {
-                case 'updateEditorValue':
+                case '${WEBVIEW_MESSAGES.UPDATE_EDITOR_VALUE}':
                     if (editor) {
                         editor.setValue(message.code);
                     }
                     break;
-                case 'requestCurrentCode':
+                case '${WEBVIEW_MESSAGES.REQUEST_CURRENT_CODE}':
                     if (editor) {
                         const code = editor.getValue();
                         console.log('Sending code to extension, length:', code.length);
                         vscode.postMessage({
-                            type: 'updateCode',
+                            type: '${WEBVIEW_MESSAGES.UPDATE_CODE}',
                             code: code,
                             requestId: message.requestId
                         });
                     }
                     break;
-                case 'requestCurrentCodeFromWebview':
-                    // طلب الكود الحالي من WebviewPanel
+                case '${WEBVIEW_MESSAGES.REQUEST_CODE_FROM_WEBVIEW}':
                     vscode.postMessage({
-                        type: 'requestCodeFromWebview'
+                        type: '${WEBVIEW_MESSAGES.REQUEST_CODE_FROM_WEBVIEW}'
                     });
                     break;
             }
         });
 
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
+        require.config({ paths: { 'vs': '${monacoPath}' }});
 
         require(['vs/editor/editor.main'], function() {
             editor = monaco.editor.create(document.getElementById('container'), {
-                value: \`<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>صفحة</title>
-</head>
-<body>
-
-</body>
-</html>\`,
-                language: 'html',
-                theme: 'vs-dark',
-                automaticLayout: true,
-                fontSize: 14,
-                suggestOnTriggerCharacters: true
+                value: \`${EDITOR_CONFIG.DEFAULT_HTML}\`,
+                language: '${EDITOR_CONFIG.EDITOR_OPTIONS.language}',
+                theme: '${EDITOR_CONFIG.EDITOR_OPTIONS.theme}',
+                automaticLayout: ${EDITOR_CONFIG.EDITOR_OPTIONS.automaticLayout},
+                fontSize: ${EDITOR_CONFIG.EDITOR_OPTIONS.fontSize},
+                suggestOnTriggerCharacters: ${EDITOR_CONFIG.EDITOR_OPTIONS.suggestOnTriggerCharacters}
             });
 
             // إرسال الكود الأولي فقط عند تحميل المحرر
             vscode.postMessage({
-                type: 'updateCode',
+                type: '${WEBVIEW_MESSAGES.UPDATE_CODE}',
                 code: editor.getValue()
             });
         });

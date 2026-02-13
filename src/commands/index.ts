@@ -3,207 +3,240 @@ import { EditorPanel } from '../panels/editorPanel';
 import { WebPageBuilderPanel } from '../panels/webPageBuilderPanel';
 
 /**
+ * أوامر الإضافة
+ */
+const COMMANDS = {
+    OPEN_BUILDER: 'webPageBuilder.openBuilder',
+    REFRESH: 'webPageBuilder.refresh',
+    NEW_PROJECT: 'webPageBuilder.newProject',
+    SAVE_AS: 'webPageBuilder.saveAs',
+    OPEN_BUILD: 'webPageBuilder.openBuild',
+    SETTINGS: 'webPageBuilder.settings',
+    OPEN_WEBVIEWS: 'webPageBuilder.openWebviews',
+    TAGS: 'webPageBuilder.tags',
+    METADATA: 'webPageBuilder.metadata',
+    CONTENT: 'webPageBuilder.content',
+    MEDIA: 'webPageBuilder.media',
+    FORMS: 'webPageBuilder.forms',
+    INTERACTIVE: 'webPageBuilder.interactive',
+    TEXT: 'webPageBuilder.text',
+    EMBEDDED: 'webPageBuilder.embedded',
+    SCRIPTING: 'webPageBuilder.scripting',
+    EDITING: 'webPageBuilder.editing',
+    VIEW: 'webPageBuilder.view',
+    PREVIEW: 'webPageBuilder.preview',
+    DEBUG: 'webPageBuilder.debug',
+    PUBLISH: 'webPageBuilder.publish',
+    HELP: 'webPageBuilder.help'
+} as const;
+
+/**
+ * الإعدادات الافتراضية
+ */
+const DEFAULTS = {
+    SAVE_FILENAME: 'index.html',
+    MAX_RETRIES: 3,
+    TIMEOUT: 15000,
+    RETRY_DELAY: 1000
+} as const;
+
+/**
+ * رسائل الإشعارات
+ */
+const MESSAGES = {
+    EDITOR_NOT_OPEN: 'الرجاء فتح محرر الكود أولاً',
+    SAVE_FAILED: 'فشل الحصول على الكود من المحرر بعد عدة محاولات. الرجاء المحاولة مرة أخرى.',
+    SAVING: 'جاري حفظ الملف...',
+    SAVED: (path: string) => `تم حفظ الملف: ${path}`
+} as const;
+
+/**
  * تسجيل جميع أوامر الإضافة
  */
-export function registerCommands(context: vscode.ExtensionContext) {
-    // تسجيل أمر فتح البناء
-    const openBuilderCommand = vscode.commands.registerCommand('webPageBuilder.openBuilder', () => {
-        vscode.window.showInformationMessage('Web Page Builder is ready to use!');
-    });
-
-    // تسجيل أمر التحديث
-    const refreshCommand = vscode.commands.registerCommand('webPageBuilder.refresh', () => {
-        vscode.window.showInformationMessage('Web Page Builder refreshed!');
-    });
-
-    // تسجيل أمر تفعيل تاب editor
-    const newProjectCommand = vscode.commands.registerCommand('webPageBuilder.newProject', () => {
-        // تنشيط Editor إذا كان مخفياً
-        if (EditorPanel.getInstance()) {
-            EditorPanel.getInstance()!.reveal(vscode.ViewColumn.One);
-        }
-    });
-
-    // تسجيل أمر حفظ باسم
-    const saveAsCommand = vscode.commands.registerCommand('webPageBuilder.saveAs', async () => {
-        const editorPanel = EditorPanel.getInstance();
-        
-        // التأكد من أن EditorPanel لا يزال مفتوحاً
-        if (!editorPanel) {
-            vscode.window.showErrorMessage('الرجاء فتح محرر الكود أولاً');
-            return;
-        }
-
-        // إظهار EditorPanel للتأكد من أنه نشط
-        editorPanel.reveal(vscode.ViewColumn.One);
-
-        // انتظار أطول للتأكد من أن الـ webview جاهز تماماً
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // الحصول على الكود من EditorPanel مع معالجة الخطأ وإعادة المحاولة
-        let code: string;
-        let attempts = 0;
-        const maxAttempts = 3;
-        
-        while (attempts < maxAttempts) {
-            attempts++;
-            
-            try {
-                code = await editorPanel.requestCodeWithRetry(attempts, maxAttempts);
-                
-                // إذا نجحنا في الحصول على الكود، اخرج من الحلقة
-                break;
-                
-            } catch (error) {
-                
-                if (attempts < maxAttempts) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                } else {
-                    vscode.window.showErrorMessage('فشل الحصول على الكود من المحرر بعد عدة محاولات. الرجاء المحاولة مرة أخرى.');
-                    return;
-                }
-            }
-        }
-
-        // فتح نافذة حفظ باسم بعد الحصول على الكود
-        const uri = await vscode.window.showSaveDialog({
-            defaultUri: vscode.Uri.file('index.html'),
-            filters: {
-                'HTML Files': ['html'],
-                'All Files': ['*']
-            }
-        });
-
-        if (!uri) return; // الخروج إذا لم يتم اختيار مسار
-
-        // إنشاء شريط تقدم
-        await vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: 'جاري حفظ الملف...',
-            cancellable: false
-        }, async (progress) => {
-            progress.report({ increment: 0, message: 'بدء الحفظ...' });
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            progress.report({ increment: 30, message: 'جاري معالجة الكود...' });
-            await new Promise(resolve => setTimeout(resolve, 200));
-
-            progress.report({ increment: 60, message: 'جاري الكتابة إلى الملف...' });
-
-            // حفظ الكود باستخدام vscode.workspace.fs.writeFile
-            await vscode.workspace.fs.writeFile(uri, Buffer.from(code, 'utf8'));
-
-            progress.report({ increment: 100, message: 'تم الحفظ بنجاح!' });
-            await new Promise(resolve => setTimeout(resolve, 200));
-        });
-
-        vscode.window.showInformationMessage(`تم حفظ الملف: ${uri.fsPath}`);
-    });
-
-    // تسجيل أمر فتح البناء
-    const openBuildCommand = vscode.commands.registerCommand('webPageBuilder.openBuild', () => {
-        vscode.window.showInformationMessage('فتح البناء...');
-    });
-
-    // تسجيل أمر الإعدادات
-    const settingsCommand = vscode.commands.registerCommand('webPageBuilder.settings', () => {
-        vscode.window.showInformationMessage('الإعدادات...');
-    });
-
-    // تسجيل أمر فتح Webviews Panel
-    const openWebviewsCommand = vscode.commands.registerCommand('webPageBuilder.openWebviews', () => {
-        WebPageBuilderPanel.createOrShow(context.extensionUri);
-    });
-
-    // تسجيل أوامر إجراءات المحرر الجديدة
-    const tagsCommand = vscode.commands.registerCommand('webPageBuilder.tags', () => {
-        vscode.window.showInformationMessage('قائمة الوسوم HTML...');
-        WebPageBuilderPanel.createOrShow(context.extensionUri);
-    });
-
-    const metadataCommand = vscode.commands.registerCommand('webPageBuilder.metadata', () => {
-        vscode.window.showInformationMessage('البيانات الوصفية...');
-    });
-
-    const contentCommand = vscode.commands.registerCommand('webPageBuilder.content', () => {
-        vscode.window.showInformationMessage('المحتوى...');
-    });
-
-    const mediaCommand = vscode.commands.registerCommand('webPageBuilder.media', () => {
-        vscode.window.showInformationMessage('الوسائط...');
-    });
-
-    const formsCommand = vscode.commands.registerCommand('webPageBuilder.forms', () => {
-        vscode.window.showInformationMessage('النماذج...');
-    });
-
-    const interactiveCommand = vscode.commands.registerCommand('webPageBuilder.interactive', () => {
-        vscode.window.showInformationMessage('العناصر التفاعلية...');
-    });
-
-    const textCommand = vscode.commands.registerCommand('webPageBuilder.text', () => {
-        vscode.window.showInformationMessage('النصوص...');
-    });
-
-    const embeddedCommand = vscode.commands.registerCommand('webPageBuilder.embedded', () => {
-        vscode.window.showInformationMessage('المحتوى المدمج...');
-    });
-
-    const scriptingCommand = vscode.commands.registerCommand('webPageBuilder.scripting', () => {
-        vscode.window.showInformationMessage('السكربت...');
-    });
-
-    const editingCommand = vscode.commands.registerCommand('webPageBuilder.editing', () => {
-        vscode.window.showInformationMessage('تعديل النصوص...');
-    });
-
-    const viewCommand = vscode.commands.registerCommand('webPageBuilder.view', () => {
-        vscode.window.showInformationMessage('العرض...');
-    });
-
-    const previewCommand = vscode.commands.registerCommand('webPageBuilder.preview', () => {
-        const activeEditor = vscode.window.activeTextEditor;
-        if (activeEditor) {
-            vscode.window.showInformationMessage('معاينة الصفحة...');
-            // يمكن إضافة منطق لفتح معاينة حقيقية هنا
-        }
-    });
-
-    const debugCommand = vscode.commands.registerCommand('webPageBuilder.debug', () => {
-        vscode.window.showInformationMessage('التصحيح...');
-    });
-
-    const publishCommand = vscode.commands.registerCommand('webPageBuilder.publish', () => {
-        vscode.window.showInformationMessage('النشر...');
-    });
-
-    const helpCommand = vscode.commands.registerCommand('webPageBuilder.help', () => {
-        vscode.window.showInformationMessage('المساعدة...');
-    });
-
-    // إضافة جميع الأوامر إلى context.subscriptions
+export function registerCommands(context: vscode.ExtensionContext): void {
+    // تسجيل الأوامر الأساسية
     context.subscriptions.push(
-        openBuilderCommand,
-        refreshCommand,
-        newProjectCommand,
-        saveAsCommand,
-        openBuildCommand,
-        settingsCommand,
-        openWebviewsCommand,
-        tagsCommand,
-        metadataCommand,
-        contentCommand,
-        mediaCommand,
-        formsCommand,
-        interactiveCommand,
-        textCommand,
-        embeddedCommand,
-        scriptingCommand,
-        editingCommand,
-        viewCommand,
-        previewCommand,
-        debugCommand,
-        publishCommand,
-        helpCommand
+        vscode.commands.registerCommand(COMMANDS.OPEN_BUILDER, () => {
+            vscode.window.showInformationMessage('Web Page Builder is ready to use!');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.REFRESH, () => {
+            vscode.window.showInformationMessage('Web Page Builder refreshed!');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.NEW_PROJECT, () => {
+            const editorPanel = EditorPanel.getInstance();
+            if (editorPanel) {
+                editorPanel.reveal(vscode.ViewColumn.One);
+            }
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.SAVE_AS, async () => {
+            await handleSaveAs();
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.OPEN_BUILD, () => {
+            vscode.window.showInformationMessage('فتح البناء...');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.SETTINGS, () => {
+            vscode.window.showInformationMessage('الإعدادات...');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.OPEN_WEBVIEWS, () => {
+            WebPageBuilderPanel.createOrShow(context.extensionUri);
+        })
     );
+
+    // تسجيل أوامر إجراءات المحرر
+    context.subscriptions.push(
+        vscode.commands.registerCommand(COMMANDS.TAGS, () => {
+            vscode.window.showInformationMessage('قائمة الوسوم HTML...');
+            WebPageBuilderPanel.createOrShow(context.extensionUri);
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.METADATA, () => {
+            vscode.window.showInformationMessage('البيانات الوصفية...');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.CONTENT, () => {
+            vscode.window.showInformationMessage('المحتوى...');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.MEDIA, () => {
+            vscode.window.showInformationMessage('الوسائط...');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.FORMS, () => {
+            vscode.window.showInformationMessage('النماذج...');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.INTERACTIVE, () => {
+            vscode.window.showInformationMessage('العناصر التفاعلية...');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.TEXT, () => {
+            vscode.window.showInformationMessage('النصوص...');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.EMBEDDED, () => {
+            vscode.window.showInformationMessage('المحتوى المدمج...');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.SCRIPTING, () => {
+            vscode.window.showInformationMessage('السكربت...');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.EDITING, () => {
+            vscode.window.showInformationMessage('تعديل النصوص...');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.VIEW, () => {
+            vscode.window.showInformationMessage('العرض...');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.PREVIEW, () => {
+            const activeEditor = vscode.window.activeTextEditor;
+            if (activeEditor) {
+                vscode.window.showInformationMessage('معاينة الصفحة...');
+            }
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.DEBUG, () => {
+            vscode.window.showInformationMessage('التصحيح...');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.PUBLISH, () => {
+            vscode.window.showInformationMessage('النشر...');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.HELP, () => {
+            vscode.window.showInformationMessage('المساعدة...');
+        })
+    );
+}
+
+/**
+ * معالجة أمر حفظ باسم
+ */
+async function handleSaveAs(): Promise<void> {
+    const editorPanel = EditorPanel.getInstance();
+    
+    // التأكد من أن EditorPanel مفتوح
+    if (!editorPanel) {
+        vscode.window.showErrorMessage(MESSAGES.EDITOR_NOT_OPEN);
+        return;
+    }
+
+    // إظهار EditorPanel والتأكد من جاهزيته
+    editorPanel.reveal(vscode.ViewColumn.One);
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // الحصول على الكود مع إعادة المحاولة
+    let code: string;
+    try {
+        code = await getCodeWithRetry(editorPanel);
+    } catch (error) {
+        vscode.window.showErrorMessage(MESSAGES.SAVE_FAILED);
+        return;
+    }
+
+    // فتح نافذة حفظ باسم
+    const uri = await vscode.window.showSaveDialog({
+        defaultUri: vscode.Uri.file(DEFAULTS.SAVE_FILENAME),
+        filters: {
+            'HTML Files': ['html'],
+            'All Files': ['*']
+        }
+    });
+
+    if (!uri) {
+        return;
+    }
+
+    // حفظ الملف مع شريط تقدم
+    await saveFileWithProgress(uri, code);
+}
+
+/**
+ * الحصول على الكود مع إعادة المحاولة
+ */
+async function getCodeWithRetry(editorPanel: EditorPanel): Promise<string> {
+    for (let attempt = 1; attempt <= DEFAULTS.MAX_RETRIES; attempt++) {
+        try {
+            return await editorPanel.requestCodeWithRetry(attempt, DEFAULTS.MAX_RETRIES);
+        } catch (error) {
+            if (attempt < DEFAULTS.MAX_RETRIES) {
+                await new Promise(resolve => setTimeout(resolve, DEFAULTS.RETRY_DELAY));
+            } else {
+                throw error;
+            }
+        }
+    }
+    throw new Error('فشل الحصول على الكود');
+}
+
+/**
+ * حفظ الملف مع شريط تقدم
+ */
+async function saveFileWithProgress(uri: vscode.Uri, code: string): Promise<void> {
+    await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: MESSAGES.SAVING,
+        cancellable: false
+    }, async (progress) => {
+        progress.report({ increment: 0, message: 'بدء الحفظ...' });
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        progress.report({ increment: 30, message: 'جاري معالجة الكود...' });
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        progress.report({ increment: 60, message: 'جاري الكتابة إلى الملف...' });
+        await vscode.workspace.fs.writeFile(uri, Buffer.from(code, 'utf8'));
+
+        progress.report({ increment: 100, message: 'تم الحفظ بنجاح!' });
+        await new Promise(resolve => setTimeout(resolve, 200));
+    });
+
+    vscode.window.showInformationMessage(MESSAGES.SAVED(uri.fsPath));
 }

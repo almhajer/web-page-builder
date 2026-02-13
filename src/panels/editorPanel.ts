@@ -268,13 +268,13 @@ async function getEditorHtml(): Promise<string> {
                         const fullText = model.getValue();
                         
                         // تصنيف الوسوم حسب القسم التابع لها
-                        const headElements = ['title', 'base', 'link', 'meta', 'style'];
+                        const headElements = ['title', 'base', 'link', 'meta', 'style', 'script'];
                         const bodyElements = ['p', 'div', 'span', 'img', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
                                               'button', 'input', 'textarea', 'select', 'form', 'label',
                                               'table', 'tr', 'td', 'th', 'ul', 'ol', 'li', 'article',
                                               'section', 'nav', 'aside', 'header', 'footer', 'main',
                                               'figure', 'figcaption', 'video', 'audio', 'canvas', 'iframe',
-                                              'br', 'hr', 'pre', 'code', 'blockquote', 'address', 'script'];
+                                              'br', 'hr', 'pre', 'code', 'blockquote', 'address'];
                         
                         // العناصر التي يجب إدراجها في نهاية body (قبل </body>)
                         const endOfBodyElements = ['script-internal'];

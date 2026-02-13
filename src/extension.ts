@@ -7,17 +7,20 @@ import { registerCommands } from './commands';
 /**
  * تفعيل الإضافة
  */
-export function activate(context: vscode.ExtensionContext): void {
-    // إنشاء EditorPanel
-    EditorPanel.create(context);
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
+    // إنشاء EditorPanel أولاً
+    await EditorPanel.create(context);
 
     // فتح Webviews مباشرة عند تفعيل الإضافة
     WebPageBuilderPanel.createOrShow(context.extensionUri);
 
-    // جعل EditorPanel هو النشط بعد إنشاء جميع اللوحات
+    // جعل EditorPanel هو التبويب النشط بعد إنشاء جميع اللوحات
     const editorPanel = EditorPanel.getInstance();
     if (editorPanel) {
-        editorPanel.reveal(vscode.ViewColumn.One);
+        // تأخير قصير للتأكد من تحميل اللوحات ثم تفعيل Editor
+        setTimeout(() => {
+            editorPanel.reveal(vscode.ViewColumn.One);
+        }, 100);
     }
 
     // تسجيل جميع الأوامر

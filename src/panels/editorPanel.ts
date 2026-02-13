@@ -450,17 +450,49 @@ function getEditorHtml(): string {
                                           !lineContent.substring(0, position.column - 1).includes('>');
                     
                     // التحقق مما إذا كان الوسم يحتاج إلى وضع المؤشر في المنتصف
-                    const needsCursorPosition = text.match(/^<([^>]+)><\\/\\1>$/);
+                    // التعامل مع الوسوم العادية (مع أو بدون سمات)
+                    const normalTagMatch = text.match(/^<([a-zA-Z][a-zA-Z0-9]*)([^>]*)><\\/\\1>$/);
+                    // التعامل مع الوسوم الأحادية مع سمات
+                    const selfClosingTagMatch = text.match(/^<([a-zA-Z][a-zA-Z0-9]*)([^>]*)\\/>$/);
+                    
                     let cursorPositionAfterInsert = null;
                     let openTagLength = 0;
                     
-                    if (needsCursorPosition) {
-                        // حساب موقع المؤشر في المنتصف بين وسم الفتح والإغلاق
-                        openTagLength = needsCursorPosition[1].length + 2; // +2 لـ <>
+                    if (normalTagMatch) {
+                        // وسم عادي مع أو بدون سمات (مثل <a href=""></a> أو <h5></h5>)
+                        // المؤشر يجب أن يكون بين > و <
+                        const fullOpenTag = '<' + normalTagMatch[1] + normalTagMatch[2] + '>';
+                        openTagLength = fullOpenTag.length;
                         cursorPositionAfterInsert = {
                             lineNumber: insertPosition.lineNumber,
                             column: insertPosition.column + openTagLength
                         };
+                    } else if (selfClosingTagMatch) {
+                        // وسم أحادي مع سمات (مثل <img src="">)
+                        // المؤشر يجب أن يكون داخل علامات الاقتباس للسمة الأولى الفارغة
+                        const attributes = selfClosingTagMatch[2];
+                        // البحث عن السمة الأولى ذات القيمة الفارغة (مع أو بدون مسافات حول =)
+                        const emptyAttrMatch = attributes.match(/([a-zA-Z-]+)\\s*=\\s*""/);
+                        if (emptyAttrMatch) {
+                            // حساب موقع المؤشر داخل علامات الاقتباس
+                            const beforeAttrIndex = text.indexOf(emptyAttrMatch[0]);
+                            const attrNameLength = emptyAttrMatch[1].length;
+                            // البحث عن موقع علامة الاقتباس المزدوجة الأولى
+                            const quoteIndex = text.indexOf('""', beforeAttrIndex);
+                            openTagLength = quoteIndex + 1; // +1 للدخول داخل علامات الاقتباس
+                            cursorPositionAfterInsert = {
+                                lineNumber: insertPosition.lineNumber,
+                                column: insertPosition.column + openTagLength
+                            };
+                        } else {
+                            // إذا لم تكن هناك سمة فارغة، ضع المؤشر بعد وسم الفتح
+                            const fullTag = '<' + selfClosingTagMatch[1] + selfClosingTagMatch[2] + '/>';
+                            openTagLength = fullTag.length;
+                            cursorPositionAfterInsert = {
+                                lineNumber: insertPosition.lineNumber,
+                                column: insertPosition.column + openTagLength
+                            };
+                        }
                     }
                     
                     // معالجة وسم script (داخلي أو خارجي) حسب موقع المؤشر

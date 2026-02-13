@@ -281,8 +281,13 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
             return `<${tag}/>`;
         }
         
-        // الوسم يحتاج إلى إغلاق
-        return `<${tag}></${tag}>`;
+        // الوسم يحتاج إلى إغلاق - التأكد من أن الوسم يبدأ بحرف أبجدي
+        if (/^[a-zA-Z]/.test(tag)) {
+            return `<${tag}></${tag}>`;
+        }
+        
+        // في حالة الوسم غير صالح، إرجاع وسم div افتراضي
+        return `<div></div>`;
     }
 
     /**

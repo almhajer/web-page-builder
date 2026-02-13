@@ -255,6 +255,22 @@ async function getEditorHtml(): Promise<string> {
                     if (editor) {
                         const position = editor.getPosition();
                         const text = message.text || '';
+                        
+                        // الحصول على السطر الحالي
+                        const lineContent = editor.getModel().getLineContent(position.lineNumber);
+                        
+                        // التحقق مما إذا كان المؤشر داخل وسم
+                        const isInsideTag = lineContent.substring(0, position.column - 1).includes('<') && 
+                                          !lineContent.substring(0, position.column - 1).includes('>');
+                        
+                        // تحديد النص المراد إدراجه
+                        let textToInsert = text;
+                        
+                        // إذا كان المؤشر خارج وسم يحتوي له، أضف سطر جديد
+                        if (!isInsideTag && lineContent.trim() !== '') {
+                            textToInsert = '\\n' + text;
+                        }
+                        
                         editor.executeEdits('', [{
                             range: {
                                 startLineNumber: position.lineNumber,
@@ -262,7 +278,7 @@ async function getEditorHtml(): Promise<string> {
                                 endLineNumber: position.lineNumber,
                                 endColumn: position.column
                             },
-                            text: text
+                            text: textToInsert
                         }]);
                     }
                     break;

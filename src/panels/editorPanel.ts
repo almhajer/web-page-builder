@@ -305,23 +305,20 @@ async function getEditorHtml(): Promise<string> {
                         const isInsideIframe = lastIframeOpen !== -1 && 
                                                (lastIframeClose === -1 || lastIframeOpen > lastIframeClose);
                         
-                        // التحقق من الوسوم الأساسية
-                        if (uniqueTags.includes(tagName) && !isInsideIframe) {
-                            // البحث عن الوسم في المستوى الرئيسي (خارج أي iframe)
-                            // نبحث عن الوسم خارج أي أطر iframe
-                            let tagExists = false;
-                            
+                        // التحقق من الوسوم الأساسية (فقط html, head, body, title لا يمكن تكرارها)
+                        // ملاحظة: تم إلغاء التحقق من التكرار للسماح بإضافة أي وسم عدة مرات
+                        // الوسوم الوحيدة التي لا يمكن تكرارها هي: html, head, body
+                        if ((tagName === 'html' || tagName === 'head' || tagName === 'body') && !isInsideIframe) {
                             // إزالة محتوى iframe للبحث في المستوى الرئيسي فقط
                             const mainContent = fullText.replace(/<iframe[^>]*>[\\s\\S]*?<\\/iframe>/gi, '');
                             
+                            let tagExists = false;
                             if (tagName === 'html') {
                                 tagExists = /<html[^>]*>/i.test(mainContent);
                             } else if (tagName === 'head') {
                                 tagExists = /<head[^>]*>/i.test(mainContent);
                             } else if (tagName === 'body') {
                                 tagExists = /<body[^>]*>/i.test(mainContent);
-                            } else if (tagName === 'title') {
-                                tagExists = /<title[^>]*>/i.test(mainContent);
                             }
                             
                             if (tagExists) {

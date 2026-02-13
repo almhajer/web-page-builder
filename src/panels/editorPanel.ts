@@ -452,6 +452,81 @@ async function getEditorHtml(): Promise<string> {
                             },
                             text: textToInsert
                         }]);
+                        
+                        // تحديد موضع المؤشر بعد الإدراج
+                        // خريطة لتحديد موضع المؤشر لكل وسم
+                        const cursorPositions = {
+                            // وسوم ذات محتوى نصي - المؤشر بين فتح وإغلاق الوسم
+                            'p': { type: 'content' },
+                            'div': { type: 'content' },
+                            'span': { type: 'content' },
+                            'h1': { type: 'content' },
+                            'h2': { type: 'content' },
+                            'h3': { type: 'content' },
+                            'h4': { type: 'content' },
+                            'h5': { type: 'content' },
+                            'h6': { type: 'content' },
+                            'button': { type: 'content' },
+                            'label': { type: 'content' },
+                            'a': { type: 'content' },
+                            'li': { type: 'content' },
+                            'td': { type: 'content' },
+                            'th': { type: 'content' },
+                            'textarea': { type: 'content' },
+                            'pre': { type: 'content' },
+                            'code': { type: 'content' },
+                            'blockquote': { type: 'content' },
+                            'figcaption': { type: 'content' },
+                            'article': { type: 'content' },
+                            'section': { type: 'content' },
+                            'nav': { type: 'content' },
+                            'aside': { type: 'content' },
+                            'header': { type: 'content' },
+                            'footer': { type: 'content' },
+                            'main': { type: 'content' },
+                            // وسوم ذات خصائص - المؤشر في الخاصية الأولى
+                            'script': { type: 'attribute', attr: 'src', template: '<script src=""' },
+                            'link': { type: 'attribute', attr: 'href', template: '<link href=""' },
+                            'img': { type: 'attribute', attr: 'src', template: '<img src=""' },
+                            'iframe': { type: 'attribute', attr: 'src', template: '<iframe src=""' },
+                            'video': { type: 'attribute', attr: 'src', template: '<video src=""' },
+                            'audio': { type: 'attribute', attr: 'src', template: '<audio src=""' },
+                            'source': { type: 'attribute', attr: 'src', template: '<source src=""' },
+                            'input': { type: 'attribute', attr: 'type', template: '<input type=""' },
+                            'form': { type: 'attribute', attr: 'action', template: '<form action=""' },
+                            'meta': { type: 'attribute', attr: 'name', template: '<meta name=""' }
+                        };
+                        
+                        const cursorConfig = cursorPositions[tagName];
+                        if (cursorConfig) {
+                            // حساب موضع النص المدرج
+                            const insertOffset = model.getOffsetAt(insertPosition);
+                            const newTextLength = textToInsert.length;
+                            
+                            if (cursorConfig.type === 'content') {
+                                // المؤشر بين فتح وإغلاق الوسم
+                                // البحث عن موضع إغلاق وسم الفتح
+                                const openTagEnd = textToInsert.indexOf('>');
+                                if (openTagEnd !== -1) {
+                                    const cursorOffset = insertOffset + openTagEnd + 1;
+                                    const newCursorPos = model.getPositionAt(cursorOffset);
+                                    editor.setPosition(newCursorPos);
+                                }
+                            } else if (cursorConfig.type === 'attribute') {
+                                // المؤشر داخل الخاصية الأولى
+                                // البحث عن موضع الخاصية
+                                const attrPattern = new RegExp(cursorConfig.attr + '="');
+                                const attrMatch = textToInsert.match(attrPattern);
+                                if (attrMatch) {
+                                    const attrIndex = textToInsert.indexOf(attrMatch[0]) + attrMatch[0].length;
+                                    const cursorOffset = insertOffset + attrIndex;
+                                    const newCursorPos = model.getPositionAt(cursorOffset);
+                                    editor.setPosition(newCursorPos);
+                                }
+                            }
+                        }
+                        
+                        editor.focus();
                     }
                     break;
             }

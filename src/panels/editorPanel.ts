@@ -8,26 +8,19 @@ import { codeEventEmitter } from '../events/codeEventEmitter';
 const EDITOR_CONFIG = {
     VIEW_TYPE: 'Editor',
     TITLE: 'Editor',
-    MONACO_VERSION: '0.34.1',
-    MONACO_CDN: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor',
+    MONACO_VERSION: '0.45.0',
+    MONACO_CDN: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min',
     DEFAULT_HTML: `<!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>صفحة</title>
+    <title>صفحتي</title>
 </head>
 <body>
 
 </body>
-</html>`,
-    EDITOR_OPTIONS: {
-        language: 'html',
-        theme: 'vs-dark',
-        automaticLayout: true,
-        fontSize: 14,
-        suggestOnTriggerCharacters: true
-    } as const
+</html>`
 } as const;
 
 /**
@@ -77,12 +70,12 @@ export class EditorPanel {
             {
                 enableScripts: true,
                 retainContextWhenHidden: true,
-                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))]
+                localResourceRoots: []
             }
         );
 
         // تعيين محتوى HTML للـ webview
-        panel.webview.html = await getEditorHtml();
+        panel.webview.html = getEditorHtml();
 
         EditorPanel.instance = new EditorPanel(panel);
         return EditorPanel.instance;
@@ -244,328 +237,343 @@ export class EditorPanel {
 /**
  * الحصول على محتوى HTML لمحرر 
  */
-async function getEditorHtml(): Promise<string> {
-    const monacoLoaderUrl = `${EDITOR_CONFIG.MONACO_CDN}/${EDITOR_CONFIG.MONACO_VERSION}/min/vs/loader.min.js`;
-    const monacoPath = `${EDITOR_CONFIG.MONACO_CDN}/${EDITOR_CONFIG.MONACO_VERSION}/min/vs`;
-
+function getEditorHtml(): string {
+    const defaultHtml = EDITOR_CONFIG.DEFAULT_HTML;
+    
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <script src="${monacoLoaderUrl}"></script>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https:; style-src 'unsafe-inline' https:; font-src https:;">
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #1e1e1e; }
-        #container { height: 100vh; width: 100%; }
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            height: 100%; 
+            overflow: hidden; 
+            background-color: #1e1e1e; 
+        }
+        #container { 
+            height: 100vh; 
+            width: 100%; 
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #cccccc;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
-    <div id="container"></div>
+    <div id="container">
+        <div class="loading">جاري تحميل المحرر...</div>
+    </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
     <script>
         const vscode = acquireVsCodeApi();
         let editor = null;
+        const defaultHtml = ${JSON.stringify(defaultHtml)};
 
-        window.addEventListener('message', event => {
+        // تهيئة المحرر
+        require.config({ 
+            paths: { 
+                'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs'
+            }
+        });
+
+        require(['vs/editor/editor.main'], function() {
+            console.log('Monaco Editor loaded successfully');
+            
+            // إنشاء المحرر
+            editor = monaco.editor.create(document.getElementById('container'), {
+                value: defaultHtml,
+                language: 'html',
+                theme: 'vs-dark',
+                automaticLayout: true,
+                fontSize: 14,
+                readOnly: false,
+                minimap: { enabled: true },
+                wordWrap: 'on',
+                lineNumbers: 'on',
+                scrollBeyondLastLine: false,
+                renderWhitespace: 'selection',
+                suggestOnTriggerCharacters: true,
+                quickSuggestions: true,
+                tabSize: 4,
+                insertSpaces: true
+            });
+
+            console.log('Editor created:', editor !== null);
+            console.log('Editor value:', editor.getValue().substring(0, 100));
+
+            // إرسال الكود الأولي
+            vscode.postMessage({
+                type: 'updateCode',
+                code: editor.getValue()
+            });
+
+            // إرسال التحديثات عند تغيير المحتوى
+            editor.onDidChangeModelContent(function() {
+                console.log('Content changed, sending update...');
+                vscode.postMessage({
+                    type: 'updateCode',
+                    code: editor.getValue()
+                });
+            });
+
+            // إزالة رسالة التحميل
+            const loadingEl = document.querySelector('.loading');
+            if (loadingEl) {
+                loadingEl.remove();
+            }
+        });
+
+        // معالجة الرسائل من الإضافة
+        window.addEventListener('message', function(event) {
             const message = event.data;
             console.log('Webview received message:', message);
-            console.log('Editor exists:', editor !== null);
+
+            if (!editor) {
+                console.log('Editor not ready yet');
+                return;
+            }
 
             switch (message.type) {
-                case '${WEBVIEW_MESSAGES.UPDATE_EDITOR_VALUE}':
-                    if (editor) {
-                        editor.setValue(message.code);
-                    }
+                case 'updateEditorValue':
+                    console.log('Updating editor value, length:', message.code ? message.code.length : 0);
+                    editor.setValue(message.code || '');
                     break;
-                case '${WEBVIEW_MESSAGES.REQUEST_CURRENT_CODE}':
-                    if (editor) {
-                        const code = editor.getValue();
-                        console.log('Sending code to extension, length:', code.length);
-                        vscode.postMessage({
-                            type: '${WEBVIEW_MESSAGES.UPDATE_CODE}',
-                            code: code,
-                            requestId: message.requestId
-                        });
-                    }
-                    break;
-                case '${WEBVIEW_MESSAGES.REQUEST_CODE_FROM_WEBVIEW}':
+                    
+                case 'requestCurrentCode':
+                    console.log('Requesting current code');
                     vscode.postMessage({
-                        type: '${WEBVIEW_MESSAGES.REQUEST_CODE_FROM_WEBVIEW}'
+                        type: 'updateCode',
+                        code: editor.getValue(),
+                        requestId: message.requestId
                     });
                     break;
-                case '${WEBVIEW_MESSAGES.INSERT_TEXT_AT_CURSOR}':
-                    if (editor) {
-                        const position = editor.getPosition();
-                        const text = message.text || '';
-                        const model = editor.getModel();
-                        const fullText = model.getValue();
+                    
+                case 'insertTextAtCursor':
+                    console.log('Inserting text at cursor');
+                    const position = editor.getPosition();
+                    const text = message.text || '';
+                    const model = editor.getModel();
+                    const fullText = model.getValue();
+                    
+                    // تصنيف الوسوم حسب القسم التابع لها
+                    const headElements = ['title', 'base', 'link', 'meta', 'style'];
+                    const bodyElements = ['p', 'div', 'span', 'img', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                                          'button', 'input', 'textarea', 'select', 'form', 'label',
+                                          'table', 'tr', 'td', 'th', 'ul', 'ol', 'li', 'article',
+                                          'section', 'nav', 'aside', 'header', 'footer', 'main',
+                                          'figure', 'figcaption', 'video', 'audio', 'canvas', 'iframe',
+                                          'br', 'hr', 'pre', 'code', 'blockquote', 'address', 'script'];
+                    
+                    // التحقق مما إذا كان وسم script داخلي (بدون src)
+                    const isInternalScript = text.includes('<script') && !text.includes('src="');
+                    
+                    // التحقق مما إذا كان وسم script خارجي (له src)
+                    const isExternalScript = text.includes('src="') && text.includes('<script');
+                    
+                    // التحقق مما إذا كان المؤشر داخل head أو body
+                    const cursorAbsolutePos = model.getOffsetAt(position);
+                    const headStartMatch = fullText.match(/<head[^>]*>/i);
+                    const headEndMatch = fullText.match(/<\\/head>/i);
+                    const bodyStartMatch = fullText.match(/<body[^>]*>/i);
+                    const bodyEndMatch = fullText.match(/<\\/body>/i);
+                    
+                    let isCursorInHead = false;
+                    let isCursorInBody = false;
+                    
+                    if (headStartMatch && headEndMatch) {
+                        const headStart = headStartMatch.index + headStartMatch[0].length;
+                        const headEnd = headEndMatch.index;
+                        isCursorInHead = cursorAbsolutePos >= headStart && cursorAbsolutePos <= headEnd;
+                    }
+                    
+                    if (bodyStartMatch && bodyEndMatch) {
+                        const bodyStart = bodyStartMatch.index + bodyStartMatch[0].length;
+                        const bodyEnd = bodyEndMatch.index;
+                        isCursorInBody = cursorAbsolutePos >= bodyStart && cursorAbsolutePos <= bodyEnd;
+                    }
+                    
+                    // استخراج اسم الوسم من النص
+                    const tagMatch = text.match(/^\\s*<(\\w+)/);
+                    const tagName = tagMatch ? tagMatch[1].toLowerCase() : '';
+                    
+                    // التحقق مما إذا كان المؤشر داخل iframe
+                    const beforeCursor = fullText.substring(0, cursorAbsolutePos);
+                    const lastIframeOpen = beforeCursor.lastIndexOf('<iframe');
+                    const lastIframeClose = beforeCursor.lastIndexOf('</iframe>');
+                    const isInsideIframe = lastIframeOpen !== -1 && 
+                                           (lastIframeClose === -1 || lastIframeOpen > lastIframeClose);
+                    
+                    // التحقق من الوسوم الأساسية
+                    if ((tagName === 'html' || tagName === 'head' || tagName === 'body') && !isInsideIframe) {
+                        const mainContent = fullText.replace(/<iframe[^>]*>[\\s\\S]*?<\\/iframe>/gi, '');
                         
-                        // تصنيف الوسوم حسب القسم التابع لها
-                        const headElements = ['title', 'base', 'link', 'meta', 'style'];
-                        const bodyElements = ['p', 'div', 'span', 'img', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-                                              'button', 'input', 'textarea', 'select', 'form', 'label',
-                                              'table', 'tr', 'td', 'th', 'ul', 'ol', 'li', 'article',
-                                              'section', 'nav', 'aside', 'header', 'footer', 'main',
-                                              'figure', 'figcaption', 'video', 'audio', 'canvas', 'iframe',
-                                              'br', 'hr', 'pre', 'code', 'blockquote', 'address', 'script'];
-                        
-                        // العناصر التي يجب إدراجها في نهاية body (قبل </body>)
-                        const endOfBodyElements = ['script-internal'];
-                        
-                        // التحقق مما إذا كان وسم script خارجي (له src)
-                        const isExternalScript = text.includes('src="') && text.includes('<script');
-                        
-                        // التحقق مما إذا كان المؤشر داخل head أو body
-                        const cursorAbsolutePos = model.getOffsetAt(position);
-                        const headStartMatch = fullText.match(/<head[^>]*>/i);
-                        const headEndMatch = fullText.match(/<\\/head>/i);
-                        const bodyStartMatch = fullText.match(/<body[^>]*>/i);
-                        const bodyEndMatch = fullText.match(/<\\/body>/i);
-                        
-                        let isCursorInHead = false;
-                        let isCursorInBody = false;
-                        
-                        if (headStartMatch && headEndMatch) {
-                            const headStart = headStartMatch.index + headStartMatch[0].length;
-                            const headEnd = headEndMatch.index;
-                            isCursorInHead = cursorAbsolutePos >= headStart && cursorAbsolutePos <= headEnd;
+                        let tagExists = false;
+                        if (tagName === 'html') {
+                            tagExists = /<html[^>]*>/i.test(mainContent);
+                        } else if (tagName === 'head') {
+                            tagExists = /<head[^>]*>/i.test(mainContent);
+                        } else if (tagName === 'body') {
+                            tagExists = /<body[^>]*>/i.test(mainContent);
                         }
                         
-                        if (bodyStartMatch && bodyEndMatch) {
-                            const bodyStart = bodyStartMatch.index + bodyStartMatch[0].length;
-                            const bodyEnd = bodyEndMatch.index;
-                            isCursorInBody = cursorAbsolutePos >= bodyStart && cursorAbsolutePos <= bodyEnd;
+                        if (tagExists) {
+                            vscode.postMessage({
+                                type: 'showWarning',
+                                message: 'الوسم <' + tagName + '> موجود مسبقاً في المستند'
+                            });
+                            return;
                         }
-                        
-                        // التحقق مما إذا كان العنصر يجب إدراجه في نهاية body
-                        const isEndOfBodyElement = text.includes('script-internal') ||
-                                                    (text.includes('type="text/javascript">\\n') && !isExternalScript);
-                        
-                        // الوسوم الأساسية التي يجب التحقق منها (لا يمكن تكرارها إلا داخل iframe)
-                        const uniqueTags = ['html', 'head', 'body', 'title'];
-                        
-                        // استخراج اسم الوسم من النص
-                        const tagMatch = text.match(/^\\s*<(\\w+)/);
-                        const tagName = tagMatch ? tagMatch[1].toLowerCase() : '';
-                        
-                        // التحقق مما إذا كان المؤشر داخل iframe
-                        // البحث عن أقرب وسم iframe يحتوي على المؤشر
-                        const cursorAbsolutePos = model.getOffsetAt(position);
-                        const beforeCursor = fullText.substring(0, cursorAbsolutePos);
-                        const afterCursor = fullText.substring(cursorAbsolutePos);
-                        
-                        // البحث عن آخر فتح لـ iframe قبل المؤشر
-                        const lastIframeOpen = beforeCursor.lastIndexOf('<iframe');
-                        // البحث عن آخر إغلاق لـ iframe قبل المؤشر
-                        const lastIframeClose = beforeCursor.lastIndexOf('</iframe>');
-                        
-                        // التحقق مما إذا كان المؤشر داخل iframe
-                        const isInsideIframe = lastIframeOpen !== -1 && 
-                                               (lastIframeClose === -1 || lastIframeOpen > lastIframeClose);
-                        
-                        // التحقق من الوسوم الأساسية (فقط html, head, body, title لا يمكن تكرارها)
-                        // ملاحظة: تم إلغاء التحقق من التكرار للسماح بإضافة أي وسم عدة مرات
-                        // الوسوم الوحيدة التي لا يمكن تكرارها هي: html, head, body
-                        if ((tagName === 'html' || tagName === 'head' || tagName === 'body') && !isInsideIframe) {
-                            // إزالة محتوى iframe للبحث في المستوى الرئيسي فقط
-                            const mainContent = fullText.replace(/<iframe[^>]*>[\\s\\S]*?<\\/iframe>/gi, '');
+                    }
+                    
+                    // تحديد ما إذا كان عنصر head أو body
+                    const isHeadElement = headElements.includes(tagName);
+                    const isBodyElement = bodyElements.includes(tagName) || !isHeadElement;
+                    
+                    let insertPosition = position;
+                    let textToInsert = text;
+                    
+                    // الحصول على السطر الحالي
+                    const lineContent = model.getLineContent(position.lineNumber);
+                    
+                    // التحقق مما إذا كان المؤشر داخل وسم
+                    const isInsideTag = lineContent.substring(0, position.column - 1).includes('<') &&
+                                          !lineContent.substring(0, position.column - 1).includes('>');
+                    
+                    // معالجة وسم script الخارجي حسب موقع المؤشر
+                    if (isExternalScript) {
+                        if (isCursorInHead && headEndMatch) {
+                            const headEndIndex = headEndMatch.index;
+                            const headEndPosition = model.getPositionAt(headEndIndex);
                             
-                            let tagExists = false;
-                            if (tagName === 'html') {
-                                tagExists = /<html[^>]*>/i.test(mainContent);
-                            } else if (tagName === 'head') {
-                                tagExists = /<head[^>]*>/i.test(mainContent);
-                            } else if (tagName === 'body') {
-                                tagExists = /<body[^>]*>/i.test(mainContent);
-                            }
+                            const headStartLine = model.getPositionAt(headStartMatch.index);
+                            const headStartLineContent = model.getLineContent(headStartLine.lineNumber);
+                            const baseIndent = headStartLineContent.match(/^\\s*/)[0] || '';
+                            const indent = baseIndent + '    ';
                             
-                            if (tagExists) {
-                                // إظهار رسالة للمستخدم بأن الوسم موجود مسبقاً
-                                vscode.postMessage({
-                                    type: 'showWarning',
-                                    message: 'الوسم <' + tagName + '> موجود مسبقاً في المستند'
-                                });
-                                return; // عدم إدراج الوسم
-                            }
+                            insertPosition = { lineNumber: headEndPosition.lineNumber, column: headEndPosition.column };
+                            textToInsert = indent + text + '\\n';
+                        } else if (bodyStartMatch) {
+                            const bodyStartIndex = bodyStartMatch.index + bodyStartMatch[0].length;
+                            const bodyStartPosition = model.getPositionAt(bodyStartIndex);
+                            
+                            const bodyStartLine = model.getPositionAt(bodyStartMatch.index);
+                            const bodyStartLineContent = model.getLineContent(bodyStartLine.lineNumber);
+                            const baseIndent = bodyStartLineContent.match(/^\\s*/)[0] || '';
+                            const indent = baseIndent + '    ';
+                            
+                            insertPosition = { lineNumber: bodyStartPosition.lineNumber + 1, column: 1 };
+                            textToInsert = '\\n' + indent + text + '\\n';
                         }
+                    }
+                    else if (isEndOfBodyElement && bodyEndMatch) {
+                        const bodyEndIndex = bodyEndMatch.index;
+                        const bodyEndPosition = model.getPositionAt(bodyEndIndex);
                         
-                        // تحديد ما إذا كان عنصر head أو body
-                        const isHeadElement = headElements.includes(tagName);
-                        const isBodyElement = bodyElements.includes(tagName) || !isHeadElement;
+                        const bodyStartLine = model.getPositionAt(bodyStartMatch.index);
+                        const bodyStartLineContent = model.getLineContent(bodyStartLine.lineNumber);
+                        const baseIndent = bodyStartLineContent.match(/^\\s*/)[0] || '';
+                        const indent = baseIndent + '    ';
                         
-                        let insertPosition = position;
-                        let textToInsert = text;
+                        insertPosition = { lineNumber: bodyEndPosition.lineNumber, column: bodyEndPosition.column };
+                        textToInsert = indent + text + '\\n';
+                    } else if (isHeadElement && headEndMatch) {
+                        const headEndIndex = headEndMatch.index;
+                        const headEndPosition = model.getPositionAt(headEndIndex);
                         
-                        // الحصول على السطر الحالي
-                        const lineContent = model.getLineContent(position.lineNumber);
+                        const headStartLine = model.getPositionAt(headStartMatch.index);
+                        const headStartLineContent = model.getLineContent(headStartLine.lineNumber);
+                        const baseIndent = headStartLineContent.match(/^\\s*/)[0] || '';
+                        const indent = baseIndent + '    ';
                         
-                        // التحقق مما إذا كان المؤشر داخل وسم
-                        const isInsideTag = lineContent.substring(0, position.column - 1).includes('<') &&
-                                              !lineContent.substring(0, position.column - 1).includes('>');
+                        insertPosition = { lineNumber: headEndPosition.lineNumber, column: headEndPosition.column };
+                        textToInsert = indent + text + '\\n';
                         
-                        // معالجة وسم script الخارجي حسب موقع المؤشر
-                        if (isExternalScript) {
-                            if (isCursorInHead && headEndMatch) {
-                                // المؤشر في head - إدراج في نهاية head
-                                const headEndIndex = headEndMatch.index;
-                                const headEndPosition = model.getPositionAt(headEndIndex);
-                                
-                                const headStartLine = model.getPositionAt(headStartMatch.index);
-                                const headStartLineContent = model.getLineContent(headStartLine.lineNumber);
-                                const baseIndent = headStartLineContent.match(/^\\s*/)[0] || '';
-                                const indent = baseIndent + '    ';
-                                
-                                insertPosition = { lineNumber: headEndPosition.lineNumber, column: headEndPosition.column };
-                                textToInsert = indent + text + '\\n';
-                            } else if (bodyStartMatch) {
-                                // المؤشر في body أو خارجه - إدراج في بداية body
-                                const bodyStartIndex = bodyStartMatch.index + bodyStartMatch[0].length;
-                                const bodyStartPosition = model.getPositionAt(bodyStartIndex);
+                    } else if (isBodyElement && bodyStartMatch) {
+                        const bodyStartIndex = bodyStartMatch.index + bodyStartMatch[0].length;
+                        const bodyEndIndex = bodyEndMatch ? bodyEndMatch.index : fullText.length;
+                        
+                        let cursorAbsolutePosition = 0;
+                        for (let i = 1; i < position.lineNumber; i++) {
+                            cursorAbsolutePosition += model.getLineLength(i) + 1;
+                        }
+                        cursorAbsolutePosition += position.column - 1;
+                        
+                        const isCursorInBodyRange = cursorAbsolutePosition >= bodyStartIndex && 
+                                                cursorAbsolutePosition <= bodyEndIndex;
+                        
+                        if (isCursorInBodyRange) {
+                            insertPosition = position;
+                            const currentLineWhitespace = lineContent.match(/^\\s*/)[0];
+                            
+                            if (!isInsideTag && lineContent.trim() !== '') {
+                                textToInsert = '\\n' + currentLineWhitespace + text;
+                            } else if (lineContent.trim() === '') {
+                                textToInsert = text;
+                            }
+                        } else {
+                            if (bodyEndMatch) {
+                                const bodyEndIndex = bodyEndMatch.index;
+                                const bodyEndPosition = model.getPositionAt(bodyEndIndex);
                                 
                                 const bodyStartLine = model.getPositionAt(bodyStartMatch.index);
                                 const bodyStartLineContent = model.getLineContent(bodyStartLine.lineNumber);
                                 const baseIndent = bodyStartLineContent.match(/^\\s*/)[0] || '';
                                 const indent = baseIndent + '    ';
                                 
-                                insertPosition = { lineNumber: bodyStartPosition.lineNumber + 1, column: 1 };
-                                textToInsert = '\\n' + indent + text + '\\n';
-                            }
-                        }
-                        // معالجة العناصر التي يجب إدراجها في نهاية body (قبل </body>)
-                        else if (isEndOfBodyElement && bodyEndMatch) {
-                            const bodyEndIndex = bodyEndMatch.index;
-                            const bodyEndPosition = model.getPositionAt(bodyEndIndex);
-                            
-                            // حساب المسافة البادئة
-                            const bodyStartLine = model.getPositionAt(bodyStartMatch.index);
-                            const bodyStartLineContent = model.getLineContent(bodyStartLine.lineNumber);
-                            const baseIndent = bodyStartLineContent.match(/^\\s*/)[0] || '';
-                            const indent = baseIndent + '    '; // إضافة 4 مسافات للمستوى الداخلي
-                            
-                            insertPosition = { lineNumber: bodyEndPosition.lineNumber, column: bodyEndPosition.column };
-                            textToInsert = indent + text + '\\n';
-                        } else if (isHeadElement && headEndMatch) {
-                            // إدراج عناصر الترويسة داخل وسم <head> في نهاية القسم
-                            const headEndIndex = headEndMatch.index;
-                            const headEndPosition = model.getPositionAt(headEndIndex);
-                            
-                            // حساب المسافة البادئة - مستوى واحد أكثر من الوسم الحاوي
-                            const headStartLine = model.getPositionAt(headStartMatch.index);
-                            const headStartLineContent = model.getLineContent(headStartLine.lineNumber);
-                            const baseIndent = headStartLineContent.match(/^\\s*/)[0] || '';
-                            const indent = baseIndent + '    '; // إضافة 4 مسافات للمستوى الداخلي
-                            
-                            insertPosition = { lineNumber: headEndPosition.lineNumber, column: headEndPosition.column };
-                            textToInsert = indent + text + '\\n';
-                            
-                        } else if (isBodyElement && bodyStartMatch) {
-                            // إدراج عناصر body داخل وسم <body> في موضع المؤشر الحالي
-                            // التحقق مما إذا كان المؤشر داخل وسم <body>
-                            const bodyStartIndex = bodyStartMatch.index + bodyStartMatch[0].length;
-                            const bodyEndIndex = bodyEndMatch ? bodyEndMatch.index : fullText.length;
-                            
-                            // حساب موقع المؤشر بالنسبة للنص الكامل
-                            let cursorAbsolutePosition = 0;
-                            for (let i = 1; i < position.lineNumber; i++) {
-                                cursorAbsolutePosition += model.getLineLength(i) + 1;
-                            }
-                            cursorAbsolutePosition += position.column - 1;
-                            
-                            // التحقق مما إذا كان المؤشر داخل <body>
-                            const isCursorInBody = cursorAbsolutePosition >= bodyStartIndex && 
-                                                    cursorAbsolutePosition <= bodyEndIndex;
-                            
-                            if (isCursorInBody) {
-                                // المؤشر داخل body - إدراج في موضع المؤشر الحالي
-                                insertPosition = position;
-                                
-                                // حساب المسافة البادئة للسطر الحالي
-                                const currentLineWhitespace = lineContent.match(/^\\s*/)[0];
-                                
-                                // إدارة الأسطر الجديدة مع الحفاظ على التنسيق
-                                if (!isInsideTag && lineContent.trim() !== '') {
-                                    textToInsert = '\\n' + currentLineWhitespace + text;
-                                } else if (lineContent.trim() === '') {
-                                    // السطر فارغ - استخدام المسافة البادئة الحالية
-                                    textToInsert = text;
-                                }
+                                insertPosition = { lineNumber: bodyEndPosition.lineNumber, column: bodyEndPosition.column };
+                                textToInsert = indent + text + '\\n';
                             } else {
-                                // المؤشر خارج body - إدراج في نهاية body (قبل </body>)
-                                if (bodyEndMatch) {
-                                    const bodyEndIndex = bodyEndMatch.index;
-                                    const bodyEndPosition = model.getPositionAt(bodyEndIndex);
-                                    
-                                    // حساب المسافة البادئة - مستوى واحد أكثر من الوسم الحاوي
-                                    const bodyStartLine = model.getPositionAt(bodyStartMatch.index);
-                                    const bodyStartLineContent = model.getLineContent(bodyStartLine.lineNumber);
-                                    const baseIndent = bodyStartLineContent.match(/^\\s*/)[0] || '';
-                                    const indent = baseIndent + '    '; // إضافة 4 مسافات للمستوى الداخلي
-                                    
-                                    insertPosition = { lineNumber: bodyEndPosition.lineNumber, column: bodyEndPosition.column };
-                                    textToInsert = indent + text + '\\n';
-                                } else {
-                                    // لا يوجد وسم </body> - إدراج في نهاية الملف
-                                    const lastLine = model.getLineCount();
-                                    const lastColumn = model.getLineLength(lastLine) + 1;
-                                    insertPosition = { lineNumber: lastLine, column: lastColumn };
-                                    textToInsert = '\\n' + text;
-                                }
-                            }
-                        } else {
-                            // سلوك افتراضي - إدراج في موضع المؤشر
-                            insertPosition = position;
-                            
-                            // حساب المسافة البادئة للسطر الحالي
-                            const currentLineWhitespace = lineContent.match(/^\\s*/)[0];
-                            
-                            if (!isInsideTag && lineContent.trim() !== '') {
-                                textToInsert = '\\n' + currentLineWhitespace + text;
+                                const lastLine = model.getLineCount();
+                                const lastColumn = model.getLineLength(lastLine) + 1;
+                                insertPosition = { lineNumber: lastLine, column: lastColumn };
+                                textToInsert = '\\n' + text;
                             }
                         }
+                    } else {
+                        insertPosition = position;
+                        const currentLineWhitespace = lineContent.match(/^\\s*/)[0];
                         
-                        editor.executeEdits('', [{
-                            range: {
-                                startLineNumber: insertPosition.lineNumber,
-                                startColumn: insertPosition.column,
-                                endLineNumber: insertPosition.lineNumber,
-                                endColumn: insertPosition.column
-                            },
-                            text: textToInsert
-                        }]);
+                        if (!isInsideTag && lineContent.trim() !== '') {
+                            textToInsert = '\\n' + currentLineWhitespace + text;
+                        }
                     }
+                    
+                    editor.executeEdits('', [{
+                        range: {
+                            startLineNumber: insertPosition.lineNumber,
+                            startColumn: insertPosition.column,
+                            endLineNumber: insertPosition.lineNumber,
+                            endColumn: insertPosition.column
+                        },
+                        text: textToInsert
+                    }]);
                     break;
+                    
                 case 'undo':
-                    if (editor) {
-                        // تراجع عن آخر تعديل
-                        editor.trigger('undo', 'undo', null);
-                    }
+                    editor.trigger('undo', 'undo', null);
                     break;
+                    
                 case 'redo':
-                    if (editor) {
-                        // إعادة التعديل الملغي
-                        editor.trigger('redo', 'redo', null);
-                    }
+                    editor.trigger('redo', 'redo', null);
                     break;
             }
         });
 
-        require.config({ paths: { 'vs': '${monacoPath}' }});
-
-        require(['vs/editor/editor.main'], function() {
-            editor = monaco.editor.create(document.getElementById('container'), {
-                value: \`${EDITOR_CONFIG.DEFAULT_HTML}\`,
-                language: '${EDITOR_CONFIG.EDITOR_OPTIONS.language}',
-                theme: '${EDITOR_CONFIG.EDITOR_OPTIONS.theme}',
-                automaticLayout: ${EDITOR_CONFIG.EDITOR_OPTIONS.automaticLayout},
-                fontSize: ${EDITOR_CONFIG.EDITOR_OPTIONS.fontSize},
-                suggestOnTriggerCharacters: ${EDITOR_CONFIG.EDITOR_OPTIONS.suggestOnTriggerCharacters}
-            });
-
-            // إرسال الكود الأولي فقط عند تحميل المحرر
-            vscode.postMessage({
-                type: '${WEBVIEW_MESSAGES.UPDATE_CODE}',
-                code: editor.getValue()
-            });
-        });
+        // معالجة الأخطاء
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            console.error('Error: ', msg, url, lineNo, columnNo, error);
+            return false;
+        };
     </script>
 </body>
 </html>`;

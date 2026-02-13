@@ -742,6 +742,31 @@
     </div>
     <!-- / السكربت -->
 
+    <!-- قسم الإعدادات -->
+    <div class="separator" onclick="toggleCategory('settings-panel')">
+        <span class="separator-text">
+            <span class="separator-icon">▼</span>
+            <span data-locale-key="settings.title">الإعدادات</span>
+        </span>
+    </div>
+
+    <div class="category" id="category-settings-panel">
+        <div class="settings-container">
+            <div class="setting-item">
+                <label data-locale-key="settings.language">اللغة</label>
+                <select id="language-select" onchange="changeLanguage(this.value)">
+                    <option value="auto" data-locale-key="settings.auto">تلقائي</option>
+                    <option value="ar" data-locale-key="settings.arabic">العربية</option>
+                    <option value="en" data-locale-key="settings.english">English</option>
+                </select>
+            </div>
+            <button class="settings-save-btn" onclick="openVSCodeSettings()" data-locale-key="settings.moreSettings">
+                المزيد من الإعدادات
+            </button>
+        </div>
+    </div>
+    <!-- / قسم الإعدادات -->
+
     <script src="sidebar.js"></script>
 </body>
 </html>

@@ -3,6 +3,7 @@ import * as path from 'path';
 import { readFile } from 'fs/promises';
 import { EditorPanel } from '../panels/editorPanel';
 import { resetSavedFilePath } from '../commands/index';
+import { loadLocale, getLocale, t, LocaleKey } from '../locales/localeService';
 
 /**
  * رسائل Webview
@@ -11,7 +12,10 @@ const WEBVIEW_MESSAGES = {
     OPEN_BUILDER: 'openBuilder',
     NEW_PROJECT: 'newProject',
     SAVE_AS: 'saveAs',
-    INSERT_TAG: 'insertTag'
+    INSERT_TAG: 'insertTag',
+    OPEN_SETTINGS: 'openSettings',
+    CHANGE_LANGUAGE: 'changeLanguage',
+    GET_LOCALE: 'getLocale'
 } as const;
 
 /**
@@ -161,6 +165,53 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
                     editorPanel.insertTextAtCursor(tagCode);
                 }
                 break;
+            case WEBVIEW_MESSAGES.OPEN_SETTINGS:
+                // فتح إعدادات الإضافة
+                vscode.commands.executeCommand('workbench.action.openSettings', 'webPageBuilder');
+                break;
+            case WEBVIEW_MESSAGES.CHANGE_LANGUAGE:
+                // تغيير اللغة
+                await this.changeLanguage(data.language as LocaleKey);
+                break;
+            case WEBVIEW_MESSAGES.GET_LOCALE:
+                // إرسال الترجمات للـ webview
+                this.sendLocaleToWebview();
+                break;
+        }
+    }
+
+    /**
+     * تغيير لغة الإضافة
+     */
+    private async changeLanguage(language: LocaleKey): Promise<void> {
+        const config = vscode.workspace.getConfiguration('webPageBuilder');
+        await config.update('language', language, vscode.ConfigurationTarget.Global);
+        
+        // إعادة تحميل الترجمات
+        loadLocale(language);
+        
+        // إرسال الترجمات الجديدة للـ webview
+        this.sendLocaleToWebview();
+        
+        // إظهار رسالة نجاح
+        const message = language === 'ar'
+            ? 'تم تغيير اللغة بنجاح'
+            : 'Language changed successfully';
+        vscode.window.showInformationMessage(message);
+    }
+
+    /**
+     * إرسال الترجمات للـ webview
+     */
+    private sendLocaleToWebview(): void {
+        if (this._view) {
+            const localeKey = getLocale();
+            const localeData = loadLocale(localeKey);
+            this._view.webview.postMessage({
+                type: 'localeUpdate',
+                locale: localeKey,
+                strings: localeData
+            });
         }
     }
 

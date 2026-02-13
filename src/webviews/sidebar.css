@@ -398,6 +398,82 @@ body {
     overflow: hidden;
 }
 
+/* ===== تنسيقات قسم الإعدادات ===== */
+.settings-container {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    margin: 8px;
+}
+
+.setting-item {
+    margin-bottom: 16px;
+}
+
+.setting-item label {
+    display: block;
+    font-size: 12px;
+    color: #cccccc;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.setting-item select {
+    width: 100%;
+    padding: 8px 12px;
+    background: #3c3c3c;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    color: #ffffff;
+    font-size: 13px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.setting-item select:hover {
+    border-color: #007acc;
+    background: #454545;
+}
+
+.setting-item select:focus {
+    border-color: #007acc;
+    box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.3);
+}
+
+.settings-save-btn {
+    width: 100%;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #007acc, #005a9e);
+    border: none;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+}
+
+.settings-save-btn:hover {
+    background: linear-gradient(135deg, #0098ff, #007acc);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 122, 204, 0.4);
+}
+
+.settings-save-btn:active {
+    transform: translateY(0);
+}
+
+/* دعم RTL للإعدادات */
+html[dir="ltr"] .setting-item label {
+    text-align: left;
+}
+
+html[dir="rtl"] .setting-item label {
+    text-align: right;
+}
+
 .icon-button svg {
     fill: currentColor;
     width: 19px;

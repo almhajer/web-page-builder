@@ -1,9 +1,9 @@
 {
   "name": "web-page-builder",
-  "displayName": "Web Page Builder",
-  "description": "Web Page Builder",
+  "displayName": "%displayName%",
+  "description": "%description%",
   "version": "0.0.0",
-  "publisher": "your-publisher-name",
+   "publisher": "Arabic-language",
   "icon": "icon.png",
   "repository": {
     "type": "git",
@@ -308,6 +308,23 @@
           "group": "2_webPageBuilder@2"
         }
       ]
+    }
+  },
+  "configuration": {
+    "title": "Web Page Builder",
+    "properties": {
+      "webPageBuilder.language": {
+        "type": "string",
+        "default": "auto",
+        "enum": ["auto", "ar", "en"],
+        "enumDescriptions": [
+          "تلقائي - حسب لغة VS Code",
+          "Auto - Based on VS Code language",
+          "العربية",
+          "English"
+        ],
+        "description": "لغة واجهة الإضافة / Extension interface language"
+      }
     }
   },
   "scripts": {

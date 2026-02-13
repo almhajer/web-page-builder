@@ -30,10 +30,16 @@
         "icon": "$(file-code)"
       },
       {
-        "command": "webPageBuilder.refresh",
-        "title": "Refresh",
+        "command": "webPageBuilder.undo",
+        "title": "تراجع",
         "category": "Web Page Builder",
-        "icon": "$(refresh)"
+        "icon": "$(discard)"
+      },
+      {
+        "command": "webPageBuilder.redo",
+        "title": "إعادة",
+        "category": "Web Page Builder",
+        "icon": "$(redo)"
       },
     
       {
@@ -188,9 +194,14 @@
           "group": "navigation@3"
         },
         {
-          "command": "webPageBuilder.refresh",
+          "command": "webPageBuilder.undo",
           "when": "view == webPageBuilder.sidebar",
           "group": "navigation@4"
+        },
+        {
+          "command": "webPageBuilder.redo",
+          "when": "view == webPageBuilder.sidebar",
+          "group": "navigation@5"
         },
         {
           "command": "webPageBuilder.openBuild",

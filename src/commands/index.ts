@@ -7,7 +7,8 @@ import { WebPageBuilderPanel } from '../panels/webPageBuilderPanel';
  */
 const COMMANDS = {
     OPEN_BUILDER: 'webPageBuilder.openBuilder',
-    REFRESH: 'webPageBuilder.refresh',
+    UNDO: 'webPageBuilder.undo',
+    REDO: 'webPageBuilder.redo',
     NEW_PROJECT: 'webPageBuilder.newProject',
     SAVE_AS: 'webPageBuilder.saveAs',
     OPEN_BUILD: 'webPageBuilder.openBuild',
@@ -65,8 +66,18 @@ export function registerCommands(context: vscode.ExtensionContext): void {
             vscode.window.showInformationMessage('Web Page Builder is ready to use!');
         }),
 
-        vscode.commands.registerCommand(COMMANDS.REFRESH, () => {
-            vscode.window.showInformationMessage('Web Page Builder refreshed!');
+        vscode.commands.registerCommand(COMMANDS.UNDO, () => {
+            const editorPanel = EditorPanel.getInstance();
+            if (editorPanel) {
+                editorPanel.undo();
+            }
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.REDO, () => {
+            const editorPanel = EditorPanel.getInstance();
+            if (editorPanel) {
+                editorPanel.redo();
+            }
         }),
 
         vscode.commands.registerCommand(COMMANDS.NEW_PROJECT, () => {

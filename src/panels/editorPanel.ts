@@ -162,6 +162,24 @@ export class EditorPanel {
     }
 
     /**
+     * تراجع عن آخر تعديل
+     */
+    public undo(): void {
+        this.panel.webview.postMessage({
+            type: 'undo'
+        });
+    }
+
+    /**
+     * إعادة التعديل الملغي
+     */
+    public redo(): void {
+        this.panel.webview.postMessage({
+            type: 'redo'
+        });
+    }
+
+    /**
      * إعداد معالجات الأحداث
      */
     private setupEventHandlers(): void {
@@ -627,6 +645,16 @@ async function getEditorHtml(): Promise<string> {
                         }
                         
                         editor.focus();
+                    }
+                    break;
+                case 'undo':
+                    if (editor) {
+                        editor.trigger('keyboard', 'undo', null);
+                    }
+                    break;
+                case 'redo':
+                    if (editor) {
+                        editor.trigger('keyboard', 'redo', null);
                     }
                     break;
             }

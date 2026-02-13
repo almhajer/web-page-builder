@@ -487,8 +487,8 @@ function getEditorHtml(): string {
                             const beforeAttrIndex = text.indexOf(emptyAttrMatch[0]);
                             const attrNameLength = emptyAttrMatch[1].length;
                             // البحث عن موقع علامة الاقتباس المزدوجة الأولى
-                            const quoteIndex = text.indexOf('""', beforeAttrIndex);
-                            cursorOffset = quoteIndex + 1; // +1 للدخول داخل علامات الاقتباس
+                            const firstQuoteIndex = text.indexOf('"', beforeAttrIndex + attrNameLength + 1);
+                            cursorOffset = firstQuoteIndex + 1; // +1 للدخول داخل علامات الاقتباس
                         } else {
                             // إذا لم تكن هناك سمة فارغة، ضع المؤشر بعد وسم الفتح
                             const fullTag = '<' + selfClosingTagMatch[1] + selfClosingTagMatch[2] + '/>';

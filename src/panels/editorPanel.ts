@@ -664,7 +664,7 @@ async function getEditorHtml(): Promise<string> {
 
         require(['vs/editor/editor.main'], function() {
             editor = monaco.editor.create(document.getElementById('container'), {
-                value: \`${EDITOR_CONFIG.DEFAULT_HTML}\`,
+                value: ${JSON.stringify(EDITOR_CONFIG.DEFAULT_HTML)},
                 language: '${EDITOR_CONFIG.EDITOR_OPTIONS.language}',
                 theme: '${EDITOR_CONFIG.EDITOR_OPTIONS.theme}',
                 automaticLayout: ${EDITOR_CONFIG.EDITOR_OPTIONS.automaticLayout},

@@ -14,6 +14,14 @@ const WEBVIEW_MESSAGES = {
 } as const;
 
 /**
+ * الوسوم الأحادية (void elements) - لا تحتاج إلى إغلاق
+ */
+const VOID_TAGS = [
+    'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
+    'link', 'meta', 'param', 'source', 'track', 'wbr'
+] as const;
+
+/**
  * WebPageBuilderSidebarProvider - موفر Sidebar View
  */
 export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider {
@@ -68,17 +76,17 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
 
     /**
      * توليد كود الوسم
+     * @param tag اسم الوسم
+     * @returns كود الوسم
      */
     private generateTagCode(tag: string): string {
-        // قائمة الوسوم التي تحتاج إلى محتوى افتراضي
-        const tagsWithContent = ['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'button', 'a', 'img', 'input', 'textarea'];
-        
-        if (tagsWithContent.includes(tag)) {
-            return `<${tag}></${tag}>`;
+        // التحقق مما إذا كان الوسم أحادي
+        if (VOID_TAGS.includes(tag as any)) {
+            return `<${tag}/>`;
         }
         
-        // الوسوم الفارغة
-        return `<${tag}>`;
+        // الوسم يحتاج إلى إغلاق
+        return `<${tag}></${tag}>`;
     }
 
     /**

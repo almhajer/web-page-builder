@@ -180,6 +180,18 @@ export class EditorPanel {
     }
 
     /**
+     * طلب الكود من Webview عند إعادة تنشيط المحرر
+     */
+    private requestCodeFromWebviewOnActivate(): void {
+        // استيراد WebPageBuilderPanel بشكل ديناميكي لتجنب الاعتماد الدائري
+        const { WebPageBuilderPanel } = require('./webPageBuilderPanel');
+        const webviewPanel = WebPageBuilderPanel.getInstance();
+        if (webviewPanel) {
+            webviewPanel.requestCodeFromWebview();
+        }
+    }
+
+    /**
      * إعداد معالجات الأحداث
      */
     private setupEventHandlers(): void {
@@ -193,6 +205,8 @@ export class EditorPanel {
         this.panel.onDidChangeViewState(() => {
             if (this.panel.visible) {
                 console.log('Editor panel activated');
+                // طلب الكود من Webview عند إعادة تنشيط المحرر
+                this.requestCodeFromWebviewOnActivate();
             }
         });
 

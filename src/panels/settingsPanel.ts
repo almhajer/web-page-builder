@@ -35,36 +35,6 @@ export class SettingsPanel {
         this.setupEventHandlers();
     }
 
-/**
- * إعدادات SettingsPanel
- */
-const SETTINGS_CONFIG = {
-    VIEW_TYPE: 'Settings',
-    TITLE: 'إعدادات Web Page Builder'
-} as const;
-
-/**
- * رسائل Webview
- */
-const WEBVIEW_MESSAGES = {
-    GET_SETTINGS: 'getSettings',
-    SETTINGS_LOADED: 'settingsLoaded',
-    SAVE_LANGUAGE: 'saveLanguage'
-} as const;
-
-/**
- * فئة SettingsPanel لإدارة لوحة الإعدادات
- * تستخدم نمط Singleton لضمان وجود مثيل واحد فقط
- */
-export class SettingsPanel {
-    private static instance: SettingsPanel | null = null;
-    private panel: vscode.WebviewPanel;
-
-    private constructor(panel: vscode.WebviewPanel) {
-        this.panel = panel;
-        this.setupEventHandlers();
-    }
-
     /**
      * الحصول على المثيل الحالي
      */
@@ -93,9 +63,9 @@ export class SettingsPanel {
         );
 
         // تعيين محتوى HTML للـ webview
-        panel.webview.html = await this.getSettingsHtml();
+        panel.webview.html = await SettingsPanel.getSettingsHtml(context.extensionUri);
 
-        SettingsPanel.instance = new SettingsPanel(panel);
+        SettingsPanel.instance = new SettingsPanel(panel, context);
         return SettingsPanel.instance;
     }
 
@@ -165,9 +135,9 @@ export class SettingsPanel {
     /**
      * الحصول على محتوى HTML للإعدادات
      */
-    private static async getSettingsHtml(): Promise<string> {
+    private static async getSettingsHtml(extensionUri: vscode.Uri): Promise<string> {
         try {
-            const htmlPath = path.join(__dirname, '..', 'webviews', 'settingsWebview.html');
+            const htmlPath = path.join(extensionUri.fsPath, 'src', 'webviews', 'settingsWebview.html');
             const htmlContent = await readFile(htmlPath, 'utf8');
             return htmlContent;
         } catch (error) {

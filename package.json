@@ -155,12 +155,6 @@
         "icon": "$(cloud-upload)"
       },
       {
-        "command": "webPageBuilder.settings",
-        "title": "الإعدادات",
-        "category": "Web Page Builder",
-        "icon": "$(settings-gear)"
-      },
-      {
         "command": "webPageBuilder.openSettings",
         "title": "فتح الإعدادات",
         "category": "Web Page Builder",
@@ -241,14 +235,9 @@
           "group": "navigation@7"
         },
         {
-          "command": "webPageBuilder.settings",
-          "when": "view == webPageBuilder.sidebar",
-          "group": "navigation@8"
-        },
-        {
           "command": "webPageBuilder.openSettings",
           "when": "view == webPageBuilder.sidebar",
-          "group": "navigation@9"
+          "group": "navigation@8"
         }
       ],
       "editor/title": [

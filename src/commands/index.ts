@@ -122,10 +122,6 @@ export function registerCommands(context: vscode.ExtensionContext): void {
             vscode.window.showInformationMessage('فتح البناء...');
         }),
 
-        vscode.commands.registerCommand(COMMANDS.SETTINGS, () => {
-            vscode.window.showInformationMessage('الإعدادات...');
-        }),
-
         vscode.commands.registerCommand(COMMANDS.OPEN_SETTINGS, async () => {
             await handleOpenSettings(context);
         }),

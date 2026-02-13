@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { EditorPanel } from '../panels/editorPanel';
 import { WebPageBuilderPanel } from '../panels/webPageBuilderPanel';
+import { codeEventEmitter } from '../events/codeEventEmitter';
 
 /**
  * أوامر الإضافة
@@ -82,12 +83,23 @@ export function registerCommands(context: vscode.ExtensionContext): void {
 
         vscode.commands.registerCommand(COMMANDS.VIEW_SOURCE, async () => {
             let editorPanel = EditorPanel.getInstance();
+            const wasClosed = !editorPanel;
+            
             if (!editorPanel) {
                 // إعادة فتح المحرر إذا كان مغلقاً
                 editorPanel = await EditorPanel.create(context);
             }
             if (editorPanel) {
                 editorPanel.reveal(vscode.ViewColumn.One);
+                
+                // إذا كان المحرر مغلقاً، طلب الكود من Webview
+                if (wasClosed) {
+                    const webviewPanel = WebPageBuilderPanel.getInstance();
+                    if (webviewPanel) {
+                        // طلب الكود من Webview
+                        webviewPanel.requestCodeFromWebview();
+                    }
+                }
             }
         }),
 

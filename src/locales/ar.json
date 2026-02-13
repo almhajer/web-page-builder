@@ -66,7 +66,17 @@
     "yes": "نعم",
     "no": "لا",
     "error": "حدث خطأ",
-    "success": "تمت العملية بنجاح"
+    "success": "تمت العملية بنجاح",
+    "editorNotOpen": "لوحة المحرر غير مفتوحة. يرجى فتح منشئ صفحات الويب أولاً.",
+    "saveFailed": "فشل في حفظ الملف",
+    "saving": "جاري الحفظ...",
+    "fileNotFound": "الملف غير موجود: {path}",
+    "browserOpenFailed": "فشل في الفتح في المتصفح",
+    "browserOpenError": "خطأ في الفتح في المتصفح: {error}",
+    "previewError": "خطأ في إنشاء المعاينة: {error}",
+    "openedInBrowser": "تم الفتح في المتصفح",
+    "noActiveEditor": "لا يوجد محرر نشط",
+    "notHtmlFile": "الملف الحالي ليس ملف HTML"
   },
   "commands": {
     "openBuilder": "فتح منشئ صفحات الويب",

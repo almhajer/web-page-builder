@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { EditorPanel } from '../panels/editorPanel';
 import { WebPageBuilderPanel } from '../panels/webPageBuilderPanel';
 import { codeEventEmitter } from '../events/codeEventEmitter';
+import { t } from '../locales/localeService';
 
 /**
  * أوامر الإضافة
@@ -17,6 +18,7 @@ const COMMANDS = {
     OPEN_BUILD: 'webPageBuilder.openBuild',
     SETTINGS: 'webPageBuilder.settings',
     OPEN_SETTINGS: 'webPageBuilder.openSettings',
+    UPDATE_SIDEBAR_LOCALE: 'webPageBuilder.updateSidebarLocale',
     OPEN_WEBVIEWS: 'webPageBuilder.openWebviews',
     TAGS: 'webPageBuilder.tags',
     METADATA: 'webPageBuilder.metadata',
@@ -49,10 +51,10 @@ const DEFAULTS = {
  * رسائل الإشعارات
  */
 const MESSAGES = {
-    EDITOR_NOT_OPEN: 'الرجاء فتح محرر الكود أولاً',
-    SAVE_FAILED: 'فشل الحصول على الكود من المحرر بعد عدة محاولات. الرجاء المحاولة مرة أخرى.',
-    SAVING: 'جاري حفظ الملف...',
-    SAVED: (path: string) => `تم حفظ الملف: ${path}`
+    EDITOR_NOT_OPEN: () => t('messages.editorNotOpen'),
+    SAVE_FAILED: () => t('messages.saveFailed'),
+    SAVING: () => t('messages.saving'),
+    SAVED: (path: string) => t('messages.fileSaved', { path })
 } as const;
 
 /**
@@ -67,7 +69,7 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     // تسجيل الأوامر الأساسية
     context.subscriptions.push(
         vscode.commands.registerCommand(COMMANDS.OPEN_BUILDER, () => {
-            vscode.window.showInformationMessage('Web Page Builder is ready to use!');
+            vscode.window.showInformationMessage(t('commands.openBuilder'));
         }),
 
         vscode.commands.registerCommand(COMMANDS.UNDO, () => {
@@ -119,11 +121,20 @@ export function registerCommands(context: vscode.ExtensionContext): void {
         }),
 
         vscode.commands.registerCommand(COMMANDS.OPEN_BUILD, () => {
-            vscode.window.showInformationMessage('فتح البناء...');
+            vscode.window.showInformationMessage(t('commands.openBuild'));
         }),
 
         vscode.commands.registerCommand(COMMANDS.OPEN_SETTINGS, async () => {
             await handleOpenSettings(context);
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.UPDATE_SIDEBAR_LOCALE, () => {
+            const { WebPageBuilderSidebarProvider } = require('../providers/sidebarProvider');
+            // تحديث ترجمات sidebar عن طريق إرسال رسالة للـ provider
+            // سيتم التعامل مع هذا الأمر في sidebarProvider
+            // تحديث الترجمات فعلياً
+            const { loadLocale, getLocale } = require('../locales/localeService');
+            loadLocale(getLocale());
         }),
 
         vscode.commands.registerCommand(COMMANDS.OPEN_WEBVIEWS, () => {
@@ -134,67 +145,64 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     // تسجيل أوامر إجراءات المحرر
     context.subscriptions.push(
         vscode.commands.registerCommand(COMMANDS.TAGS, () => {
-            vscode.window.showInformationMessage('قائمة الوسوم HTML...');
+            vscode.window.showInformationMessage(t('commands.tags'));
             WebPageBuilderPanel.createOrShow(context.extensionUri);
         }),
 
         vscode.commands.registerCommand(COMMANDS.METADATA, () => {
-            vscode.window.showInformationMessage('البيانات الوصفية...');
+            vscode.window.showInformationMessage(t('commands.metadata'));
         }),
 
         vscode.commands.registerCommand(COMMANDS.CONTENT, () => {
-            vscode.window.showInformationMessage('المحتوى...');
+            vscode.window.showInformationMessage(t('commands.content'));
         }),
 
         vscode.commands.registerCommand(COMMANDS.MEDIA, () => {
-            vscode.window.showInformationMessage('الوسائط...');
+            vscode.window.showInformationMessage(t('commands.media'));
         }),
 
         vscode.commands.registerCommand(COMMANDS.FORMS, () => {
-            vscode.window.showInformationMessage('النماذج...');
+            vscode.window.showInformationMessage(t('commands.forms'));
         }),
 
         vscode.commands.registerCommand(COMMANDS.INTERACTIVE, () => {
-            vscode.window.showInformationMessage('العناصر التفاعلية...');
+            vscode.window.showInformationMessage(t('commands.interactive'));
         }),
 
         vscode.commands.registerCommand(COMMANDS.TEXT, () => {
-            vscode.window.showInformationMessage('النصوص...');
+            vscode.window.showInformationMessage(t('commands.text'));
         }),
 
         vscode.commands.registerCommand(COMMANDS.EMBEDDED, () => {
-            vscode.window.showInformationMessage('المحتوى المدمج...');
+            vscode.window.showInformationMessage(t('commands.embedded'));
         }),
 
         vscode.commands.registerCommand(COMMANDS.SCRIPTING, () => {
-            vscode.window.showInformationMessage('السكربت...');
+            vscode.window.showInformationMessage(t('commands.scripting'));
         }),
 
         vscode.commands.registerCommand(COMMANDS.EDITING, () => {
-            vscode.window.showInformationMessage('تعديل النصوص...');
+            vscode.window.showInformationMessage(t('commands.editing'));
         }),
 
         vscode.commands.registerCommand(COMMANDS.VIEW, () => {
-            vscode.window.showInformationMessage('العرض...');
+            vscode.window.showInformationMessage(t('commands.view'));
         }),
 
-        vscode.commands.registerCommand(COMMANDS.PREVIEW, () => {
-            const activeEditor = vscode.window.activeTextEditor;
-            if (activeEditor) {
-                vscode.window.showInformationMessage('معاينة الصفحة...');
-            }
+        vscode.commands.registerCommand(COMMANDS.PREVIEW, async () => {
+            await handleOpenWorkspaceFileInBrowser(context);
         }),
 
         vscode.commands.registerCommand(COMMANDS.DEBUG, () => {
-            vscode.window.showInformationMessage('التصحيح...');
+            vscode.window.showInformationMessage(t('commands.debug'));
         }),
 
         vscode.commands.registerCommand(COMMANDS.PUBLISH, () => {
-            vscode.window.showInformationMessage('النشر...');
+            vscode.window.showInformationMessage(t('commands.publish'));
         }),
 
         vscode.commands.registerCommand(COMMANDS.HELP, () => {
-            vscode.window.showInformationMessage('المساعدة...');
+            vscode.window.showInformationMessage(t('commands.help'));
         })
     );
 }
@@ -207,7 +215,7 @@ async function handleSaveAs(): Promise<void> {
     
     // التأكد من أن EditorPanel مفتوح
     if (!editorPanel) {
-        vscode.window.showErrorMessage(MESSAGES.EDITOR_NOT_OPEN);
+        vscode.window.showErrorMessage(MESSAGES.EDITOR_NOT_OPEN());
         return;
     }
 
@@ -220,7 +228,7 @@ async function handleSaveAs(): Promise<void> {
     try {
         code = await getCodeWithRetry(editorPanel);
     } catch (error) {
-        vscode.window.showErrorMessage(MESSAGES.SAVE_FAILED);
+        vscode.window.showErrorMessage(MESSAGES.SAVE_FAILED());
         return;
     }
 
@@ -288,7 +296,7 @@ async function getCodeWithRetry(editorPanel: EditorPanel): Promise<string> {
 async function saveFileWithProgress(uri: vscode.Uri, code: string): Promise<void> {
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: MESSAGES.SAVING,
+        title: MESSAGES.SAVING(),
         cancellable: false
     }, async (progress) => {
         progress.report({ increment: 0, message: 'بدء الحفظ...' });
@@ -396,12 +404,77 @@ async function handleOpenFile(context: vscode.ExtensionContext): Promise<void> {
 /**
  * معالجة أمر فتح في المتصفح
  */
+/**
+ * فتح ملف HTML في المتصفح الافتراضي
+ * @param fileUri - URI للملف HTML المراد فتحه
+ * @returns Promise<boolean> - true إذا تم الفتح بنجاح، false في حالة الفشل
+ */
+async function openHtmlInBrowser(fileUri: vscode.Uri): Promise<boolean> {
+    try {
+        // التأكد من أن الملف موجود
+        try {
+            await vscode.workspace.fs.stat(fileUri);
+        } catch (error) {
+            vscode.window.showErrorMessage(t('messages.fileNotFound', { path: fileUri.fsPath }));
+            return false;
+        }
+
+        // فتح الملف في المتصفح الافتراضي باستخدام URI مباشر
+        // vscode.env.openExternal يعمل بشكل صحيح مع file:// URIs على جميع المنصات
+        const success = await vscode.env.openExternal(fileUri);
+        
+        if (success) {
+            return true;
+        } else {
+            vscode.window.showErrorMessage(t('messages.browserOpenFailed'));
+            return false;
+        }
+    } catch (error) {
+        vscode.window.showErrorMessage(t('messages.browserOpenError', { error: String(error) }));
+        return false;
+    }
+}
+
+/**
+ * فتح محتوى HTML في المتصفح الافتراضي
+ * @param htmlContent - محتوى HTML المراد فتحه
+ * @param context - سياق الإضافة
+ * @returns Promise<boolean> - true إذا تم الفتح بنجاح، false في حالة الفشل
+ */
+async function openHtmlContentInBrowser(htmlContent: string, context: vscode.ExtensionContext): Promise<boolean> {
+    try {
+        // إنشاء مجلد temp إذا لم يكن موجوداً
+        const tempDir = vscode.Uri.joinPath(context.globalStorageUri, 'temp');
+        try {
+            await vscode.workspace.fs.createDirectory(tempDir);
+        } catch (error) {
+            // المجلد موجود بالفعل أو تم إنشاؤه
+        }
+        
+        // إنشاء ملف HTML مؤقت
+        const timestamp = Date.now();
+        const tempFileUri = vscode.Uri.joinPath(tempDir, `preview-${timestamp}.html`);
+        
+        // كتابة محتوى HTML إلى الملف
+        await vscode.workspace.fs.writeFile(tempFileUri, Buffer.from(htmlContent, 'utf8'));
+        
+        // فتح الملف في المتصفح
+        return await openHtmlInBrowser(tempFileUri);
+    } catch (error) {
+        vscode.window.showErrorMessage(t('messages.previewError', { error: String(error) }));
+        return false;
+    }
+}
+
+/**
+ * معالجة أمر فتح المتصفح - فتح المحتوى الحالي من EditorPanel
+ */
 async function handleOpenBrowser(context: vscode.ExtensionContext): Promise<void> {
     const editorPanel = EditorPanel.getInstance();
     
     // التأكد من أن EditorPanel مفتوح
     if (!editorPanel) {
-        vscode.window.showErrorMessage(MESSAGES.EDITOR_NOT_OPEN);
+        vscode.window.showErrorMessage(MESSAGES.EDITOR_NOT_OPEN());
         return;
     }
 
@@ -414,23 +487,45 @@ async function handleOpenBrowser(context: vscode.ExtensionContext): Promise<void
     try {
         code = await getCodeWithRetry(editorPanel);
     } catch (error) {
-        vscode.window.showErrorMessage(MESSAGES.SAVE_FAILED);
+        vscode.window.showErrorMessage(MESSAGES.SAVE_FAILED());
         return;
     }
 
-    // إنشاء ملف HTML مؤقت
-    const tempDir = vscode.Uri.joinPath(context.globalStorageUri, 'temp');
-    await vscode.workspace.fs.createDirectory(tempDir).then(() => {}, () => {});
+    // فتح المحتوى في المتصفح
+    const success = await openHtmlContentInBrowser(code, context);
+    if (success) {
+        vscode.window.showInformationMessage(t('messages.openedInBrowser'));
+    }
+}
+
+/**
+ * فتح ملف HTML من مساحة العمل في المتصفح
+ * @param context - سياق الإضافة
+ */
+async function handleOpenWorkspaceFileInBrowser(context: vscode.ExtensionContext): Promise<void> {
+    // الحصول على المحرر النشط
+    const activeEditor = vscode.window.activeTextEditor;
     
-    const timestamp = Date.now();
-    const tempFileUri = vscode.Uri.joinPath(tempDir, `preview-${timestamp}.html`);
+    if (!activeEditor) {
+        vscode.window.showErrorMessage(t('messages.noActiveEditor'));
+        return;
+    }
+
+    // التأكد من أن الملف هو ملف HTML
+    const fileName = activeEditor.document.fileName;
+    if (!fileName.toLowerCase().endsWith('.html') && !fileName.toLowerCase().endsWith('.htm')) {
+        vscode.window.showErrorMessage(t('messages.notHtmlFile'));
+        return;
+    }
+
+    // إنشاء URI للملف
+    const fileUri = vscode.Uri.file(fileName);
     
-    await vscode.workspace.fs.writeFile(tempFileUri, Buffer.from(code, 'utf8'));
-    
-    // فتح الملف في المتصفح الافتراضي
-    vscode.env.openExternal(tempFileUri);
-    
-    vscode.window.showInformationMessage('تم فتح الصفحة في المتصفح');
+    // فتح الملف في المتصفح
+    const success = await openHtmlInBrowser(fileUri);
+    if (success) {
+        vscode.window.showInformationMessage(t('messages.openedInBrowser'));
+    }
 }
 
 /**

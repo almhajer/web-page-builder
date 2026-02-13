@@ -15,7 +15,8 @@ const WEBVIEW_MESSAGES = {
     INSERT_TAG: 'insertTag',
     OPEN_SETTINGS: 'openSettings',
     CHANGE_LANGUAGE: 'changeLanguage',
-    GET_LOCALE: 'getLocale'
+    GET_LOCALE: 'getLocale',
+    UPDATE_LOCALE: 'updateLocale'
 } as const;
 
 /**
@@ -186,6 +187,10 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
                 break;
             case WEBVIEW_MESSAGES.GET_LOCALE:
                 // إرسال الترجمات للـ webview
+                this.sendLocaleToWebview();
+                break;
+            case WEBVIEW_MESSAGES.UPDATE_LOCALE:
+                // تحديث الترجمات من صفحة الإعدادات
                 this.sendLocaleToWebview();
                 break;
         }

@@ -41,7 +41,7 @@ export function loadLocale(localeKey?: LocaleKey): LocaleStrings {
     }
 }
 
-export function t(key: string): string {
+export function t(key: string, params?: Record<string, string | number>): string {
     if (!currentLocale) {
         loadLocale();
     }
@@ -57,7 +57,16 @@ export function t(key: string): string {
         }
     }
     
-    return typeof value === 'string' ? value : key;
+    let result = typeof value === 'string' ? value : key;
+    
+    // استبدال المتغيرات في النص
+    if (params && typeof result === 'string') {
+        for (const [paramKey, paramValue] of Object.entries(params)) {
+            result = result.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), String(paramValue));
+        }
+    }
+    
+    return result;
 }
 
 export function getCurrentLocaleKey(): LocaleKey {

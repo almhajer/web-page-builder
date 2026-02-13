@@ -66,7 +66,17 @@
     "yes": "Yes",
     "no": "No",
     "error": "An error occurred",
-    "success": "Operation completed successfully"
+    "success": "Operation completed successfully",
+    "editorNotOpen": "Editor panel is not open. Please open the web page builder first.",
+    "saveFailed": "Failed to save the file",
+    "saving": "Saving...",
+    "fileNotFound": "File not found: {path}",
+    "browserOpenFailed": "Failed to open in browser",
+    "browserOpenError": "Error opening in browser: {error}",
+    "previewError": "Error creating preview: {error}",
+    "openedInBrowser": "Opened in browser",
+    "noActiveEditor": "No active editor",
+    "notHtmlFile": "Current file is not an HTML file"
   },
   "commands": {
     "openBuilder": "Open Web Page Builder",

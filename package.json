@@ -24,7 +24,7 @@
         "category": "Web Page Builder"
       },
       {
-        "command": "webPageBuilder.newProject",
+        "command": "webPageBuilder.viewSource",
         "title": "عرض المصدر",
         "category": "Web Page Builder",
         "icon": "$(file-code)"
@@ -184,7 +184,7 @@
           "group": "navigation@1"
         },
         {
-          "command": "webPageBuilder.newProject",
+          "command": "webPageBuilder.viewSource",
           "when": "view == webPageBuilder.sidebar",
           "group": "navigation@2"
         },

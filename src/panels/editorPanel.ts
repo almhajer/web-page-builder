@@ -228,7 +228,7 @@ export class EditorPanel {
 }
 
 /**
- * الحصول على محتوى HTML لمحرر Monaco
+ * الحصول على محتوى HTML لمحرر 
  */
 async function getEditorHtml(): Promise<string> {
     const monacoLoaderUrl = `${EDITOR_CONFIG.MONACO_CDN}/${EDITOR_CONFIG.MONACO_VERSION}/min/vs/loader.min.js`;

@@ -5,7 +5,7 @@
 ## الميزات
 
 ### 1. محرر الكود (Editor)
-- محرر Monaco Editor مدمج في VSCode
+- محرر  Editor مدمج في VSCode
 - يدعم تمييز الكود (Syntax Highlighting)
 - يدعم الإكمال التلقائي (Auto-completion)
 - يدعم التنسيق (Formatting)
@@ -46,7 +46,7 @@ src/
 
 #### 1. EditorPanel
 **الموقع**: [`src/extension.ts`](src/extension.ts:9)
-**الوصف**: محرر Monaco Editor مدمج في VSCode
+**الوصف**: محرر  Editor مدمج في VSCode
 **الوظائف**:
 - تحرير كود HTML
 - إرسال الكود إلى Webview عند التغيير (تم تعطيله)

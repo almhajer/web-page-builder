@@ -9,7 +9,7 @@ const COMMANDS = {
     OPEN_BUILDER: 'webPageBuilder.openBuilder',
     UNDO: 'webPageBuilder.undo',
     REDO: 'webPageBuilder.redo',
-    NEW_PROJECT: 'webPageBuilder.newProject',
+    VIEW_SOURCE: 'webPageBuilder.viewSource',
     SAVE_AS: 'webPageBuilder.saveAs',
     OPEN_BUILD: 'webPageBuilder.openBuild',
     SETTINGS: 'webPageBuilder.settings',
@@ -80,8 +80,12 @@ export function registerCommands(context: vscode.ExtensionContext): void {
             }
         }),
 
-        vscode.commands.registerCommand(COMMANDS.NEW_PROJECT, () => {
-            const editorPanel = EditorPanel.getInstance();
+        vscode.commands.registerCommand(COMMANDS.VIEW_SOURCE, async () => {
+            let editorPanel = EditorPanel.getInstance();
+            if (!editorPanel) {
+                // إعادة فتح المحرر إذا كان مغلقاً
+                editorPanel = await EditorPanel.create(context);
+            }
             if (editorPanel) {
                 editorPanel.reveal(vscode.ViewColumn.One);
             }

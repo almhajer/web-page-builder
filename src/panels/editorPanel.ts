@@ -311,9 +311,34 @@ async function getEditorHtml(): Promise<string> {
                         // العناصر التي يجب إدراجها في نهاية body (قبل </body>)
                         const endOfBodyElements = ['script-internal'];
                         
+                        // التحقق مما إذا كان وسم script خارجي (له src)
+                        const isExternalScript = text.includes('src="') && text.includes('<script');
+                        
+                        // التحقق مما إذا كان المؤشر داخل head أو body
+                        const cursorAbsolutePos = model.getOffsetAt(position);
+                        const headStartMatch = fullText.match(/<head[^>]*>/i);
+                        const headEndMatch = fullText.match(/<\\/head>/i);
+                        const bodyStartMatch = fullText.match(/<body[^>]*>/i);
+                        const bodyEndMatch = fullText.match(/<\\/body>/i);
+                        
+                        let isCursorInHead = false;
+                        let isCursorInBody = false;
+                        
+                        if (headStartMatch && headEndMatch) {
+                            const headStart = headStartMatch.index + headStartMatch[0].length;
+                            const headEnd = headEndMatch.index;
+                            isCursorInHead = cursorAbsolutePos >= headStart && cursorAbsolutePos <= headEnd;
+                        }
+                        
+                        if (bodyStartMatch && bodyEndMatch) {
+                            const bodyStart = bodyStartMatch.index + bodyStartMatch[0].length;
+                            const bodyEnd = bodyEndMatch.index;
+                            isCursorInBody = cursorAbsolutePos >= bodyStart && cursorAbsolutePos <= bodyEnd;
+                        }
+                        
                         // التحقق مما إذا كان العنصر يجب إدراجه في نهاية body
                         const isEndOfBodyElement = text.includes('script-internal') ||
-                                                    text.includes('type="text/javascript">\\n');
+                                                    (text.includes('type="text/javascript">\\n') && !isExternalScript);
                         
                         // الوسوم الأساسية التي يجب التحقق منها (لا يمكن تكرارها إلا داخل iframe)
                         const uniqueTags = ['html', 'head', 'body', 'title'];
@@ -367,12 +392,6 @@ async function getEditorHtml(): Promise<string> {
                         const isHeadElement = headElements.includes(tagName);
                         const isBodyElement = bodyElements.includes(tagName) || !isHeadElement;
                         
-                        // البحث عن مواضع الأقسام
-                        const headStartMatch = fullText.match(/<head[^>]*>/i);
-                        const headEndMatch = fullText.match(/<\\/head>/i);
-                        const bodyStartMatch = fullText.match(/<body[^>]*>/i);
-                        const bodyEndMatch = fullText.match(/<\\/body>/i);
-                        
                         let insertPosition = position;
                         let textToInsert = text;
                         
@@ -383,8 +402,36 @@ async function getEditorHtml(): Promise<string> {
                         const isInsideTag = lineContent.substring(0, position.column - 1).includes('<') &&
                                               !lineContent.substring(0, position.column - 1).includes('>');
                         
+                        // معالجة وسم script الخارجي حسب موقع المؤشر
+                        if (isExternalScript) {
+                            if (isCursorInHead && headEndMatch) {
+                                // المؤشر في head - إدراج في نهاية head
+                                const headEndIndex = headEndMatch.index;
+                                const headEndPosition = model.getPositionAt(headEndIndex);
+                                
+                                const headStartLine = model.getPositionAt(headStartMatch.index);
+                                const headStartLineContent = model.getLineContent(headStartLine.lineNumber);
+                                const baseIndent = headStartLineContent.match(/^\\s*/)[0] || '';
+                                const indent = baseIndent + '    ';
+                                
+                                insertPosition = { lineNumber: headEndPosition.lineNumber, column: headEndPosition.column };
+                                textToInsert = indent + text + '\\n';
+                            } else if (bodyStartMatch) {
+                                // المؤشر في body أو خارجه - إدراج في بداية body
+                                const bodyStartIndex = bodyStartMatch.index + bodyStartMatch[0].length;
+                                const bodyStartPosition = model.getPositionAt(bodyStartIndex);
+                                
+                                const bodyStartLine = model.getPositionAt(bodyStartMatch.index);
+                                const bodyStartLineContent = model.getLineContent(bodyStartLine.lineNumber);
+                                const baseIndent = bodyStartLineContent.match(/^\\s*/)[0] || '';
+                                const indent = baseIndent + '    ';
+                                
+                                insertPosition = { lineNumber: bodyStartPosition.lineNumber + 1, column: 1 };
+                                textToInsert = '\\n' + indent + text + '\\n';
+                            }
+                        }
                         // معالجة العناصر التي يجب إدراجها في نهاية body (قبل </body>)
-                        if (isEndOfBodyElement && bodyEndMatch) {
+                        else if (isEndOfBodyElement && bodyEndMatch) {
                             const bodyEndIndex = bodyEndMatch.index;
                             const bodyEndPosition = model.getPositionAt(bodyEndIndex);
                             

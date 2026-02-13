@@ -268,13 +268,20 @@ async function getEditorHtml(): Promise<string> {
                         const fullText = model.getValue();
                         
                         // تصنيف الوسوم حسب القسم التابع لها
-                        const headElements = ['title', 'base', 'link', 'meta', 'style', 'script'];
-                        const bodyElements = ['p', 'div', 'span', 'img', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
-                                              'button', 'input', 'textarea', 'select', 'form', 'label', 
-                                              'table', 'tr', 'td', 'th', 'ul', 'ol', 'li', 'article', 
-                                              'section', 'nav', 'aside', 'header', 'footer', 'main', 
+                        const headElements = ['title', 'base', 'link', 'meta', 'style'];
+                        const bodyElements = ['p', 'div', 'span', 'img', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                                              'button', 'input', 'textarea', 'select', 'form', 'label',
+                                              'table', 'tr', 'td', 'th', 'ul', 'ol', 'li', 'article',
+                                              'section', 'nav', 'aside', 'header', 'footer', 'main',
                                               'figure', 'figcaption', 'video', 'audio', 'canvas', 'iframe',
-                                              'br', 'hr', 'pre', 'code', 'blockquote', 'address'];
+                                              'br', 'hr', 'pre', 'code', 'blockquote', 'address', 'script'];
+                        
+                        // العناصر التي يجب إدراجها في نهاية body (قبل </body>)
+                        const endOfBodyElements = ['script-internal'];
+                        
+                        // التحقق مما إذا كان العنصر يجب إدراجه في نهاية body
+                        const isEndOfBodyElement = text.includes('script-internal') ||
+                                                    text.includes('type="text/javascript">\\n');
                         
                         // الوسوم الأساسية التي يجب التحقق منها (لا يمكن تكرارها إلا داخل iframe)
                         const uniqueTags = ['html', 'head', 'body', 'title'];
@@ -344,10 +351,23 @@ async function getEditorHtml(): Promise<string> {
                         const lineContent = model.getLineContent(position.lineNumber);
                         
                         // التحقق مما إذا كان المؤشر داخل وسم
-                        const isInsideTag = lineContent.substring(0, position.column - 1).includes('<') && 
+                        const isInsideTag = lineContent.substring(0, position.column - 1).includes('<') &&
                                               !lineContent.substring(0, position.column - 1).includes('>');
                         
-                        if (isHeadElement && headEndMatch) {
+                        // معالجة العناصر التي يجب إدراجها في نهاية body (قبل </body>)
+                        if (isEndOfBodyElement && bodyEndMatch) {
+                            const bodyEndIndex = bodyEndMatch.index;
+                            const bodyEndPosition = model.getPositionAt(bodyEndIndex);
+                            
+                            // حساب المسافة البادئة
+                            const bodyStartLine = model.getPositionAt(bodyStartMatch.index);
+                            const bodyStartLineContent = model.getLineContent(bodyStartLine.lineNumber);
+                            const baseIndent = bodyStartLineContent.match(/^\\s*/)[0] || '';
+                            const indent = baseIndent + '    '; // إضافة 4 مسافات للمستوى الداخلي
+                            
+                            insertPosition = { lineNumber: bodyEndPosition.lineNumber, column: bodyEndPosition.column };
+                            textToInsert = indent + text + '\\n';
+                        } else if (isHeadElement && headEndMatch) {
                             // إدراج عناصر الترويسة داخل وسم <head> في نهاية القسم
                             const headEndIndex = headEndMatch.index;
                             const headEndPosition = model.getPositionAt(headEndIndex);

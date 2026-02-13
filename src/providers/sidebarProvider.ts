@@ -48,6 +48,7 @@ const TAGS_WITH_REQUIRED_ATTRIBUTES: Record<string, string> = {
 const SPECIAL_ELEMENTS: Record<string, string> = {
     'link-stylesheet': '<link rel="stylesheet" href="style.css">',
     'script-src': '<script type="text/javascript" src=""></script>',
+    'script-internal': '<script type="text/javascript">\n    \n</script>',
 };
 
 /**

@@ -532,21 +532,27 @@ async function getEditorHtml(): Promise<string> {
                             'area': { type: 'content' },
                             'style': { type: 'content' },
                             'title': { type: 'content' },
+                            'picture': { type: 'content' },
                             // وسوم ذات خصائص - المؤشر في الخاصية الأولى
                             'script': { type: 'attribute', attr: 'src' },
-                            'link': { type: 'attribute', attr: 'href' },
-                            'img': { type: 'attribute', attr: 'src' },
                             'iframe': { type: 'attribute', attr: 'src' },
                             'video': { type: 'attribute', attr: 'src' },
                             'audio': { type: 'attribute', attr: 'src' },
-                            'source': { type: 'attribute', attr: 'src' },
-                            'input': { type: 'attribute', attr: 'type' },
                             'form': { type: 'attribute', attr: 'action' },
-                            'meta': { type: 'attribute', attr: 'name' },
-                            'base': { type: 'attribute', attr: 'href' },
-                            'embed': { type: 'attribute', attr: 'src' },
                             'object': { type: 'attribute', attr: 'data' },
-                            'track': { type: 'attribute', attr: 'src' }
+                            // وسوم self-closing - المؤشر بعد الوسم مباشرة
+                            'link': { type: 'after' },
+                            'img': { type: 'after' },
+                            'source': { type: 'after' },
+                            'input': { type: 'after' },
+                            'meta': { type: 'after' },
+                            'base': { type: 'after' },
+                            'embed': { type: 'after' },
+                            'track': { type: 'after' },
+                            'br': { type: 'after' },
+                            'hr': { type: 'after' },
+                            'col': { type: 'after' },
+                            'wbr': { type: 'after' }
                         };
                         
                         const cursorConfig = cursorPositions[tagName];
@@ -575,6 +581,11 @@ async function getEditorHtml(): Promise<string> {
                                     const newCursorPos = model.getPositionAt(cursorOffset);
                                     editor.setPosition(newCursorPos);
                                 }
+                            } else if (cursorConfig.type === 'after') {
+                                // المؤشر بعد الوسم مباشرة (للوسوم self-closing)
+                                const cursorOffset = insertOffset + textToInsert.length;
+                                const newCursorPos = model.getPositionAt(cursorOffset);
+                                editor.setPosition(newCursorPos);
                             }
                         }
                         

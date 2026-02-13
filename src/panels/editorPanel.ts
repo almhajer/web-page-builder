@@ -372,7 +372,7 @@ function getEditorHtml(): string {
                                           'table', 'tr', 'td', 'th', 'ul', 'ol', 'li', 'article',
                                           'section', 'nav', 'aside', 'header', 'footer', 'main',
                                           'figure', 'figcaption', 'video', 'audio', 'canvas', 'iframe',
-                                          'br', 'hr', 'pre', 'code', 'blockquote', 'address', 'script'];
+                                          'br', 'hr', 'pre', 'code', 'blockquote', 'address'];
                     
                     // التحقق مما إذا كان وسم script داخلي (بدون src)
                     const isInternalScript = text.includes('<script') && !text.includes('src="');
@@ -449,9 +449,24 @@ function getEditorHtml(): string {
                     const isInsideTag = lineContent.substring(0, position.column - 1).includes('<') &&
                                           !lineContent.substring(0, position.column - 1).includes('>');
                     
-                    // معالجة وسم script الخارجي حسب موقع المؤشر
-                    if (isExternalScript) {
+                    // التحقق مما إذا كان الوسم يحتاج إلى وضع المؤشر في المنتصف
+                    const needsCursorPosition = text.match(/^<([^>]+)><\\/\\1>$/);
+                    let cursorPositionAfterInsert = null;
+                    let openTagLength = 0;
+                    
+                    if (needsCursorPosition) {
+                        // حساب موقع المؤشر في المنتصف بين وسم الفتح والإغلاق
+                        openTagLength = needsCursorPosition[1].length + 2; // +2 لـ <>
+                        cursorPositionAfterInsert = {
+                            lineNumber: insertPosition.lineNumber,
+                            column: insertPosition.column + openTagLength
+                        };
+                    }
+                    
+                    // معالجة وسم script (داخلي أو خارجي) حسب موقع المؤشر
+                    if (isInternalScript || isExternalScript) {
                         if (isCursorInHead && headEndMatch) {
+                            // إذا كان المؤشر في head، أضف السكربت في نهاية head
                             const headEndIndex = headEndMatch.index;
                             const headEndPosition = model.getPositionAt(headEndIndex);
                             
@@ -462,7 +477,16 @@ function getEditorHtml(): string {
                             
                             insertPosition = { lineNumber: headEndPosition.lineNumber, column: headEndPosition.column };
                             textToInsert = indent + text + '\\n';
-                        } else if (bodyStartMatch) {
+                            
+                            // تحديث موقع المؤشر بعد الإدراج
+                            if (cursorPositionAfterInsert) {
+                                cursorPositionAfterInsert = {
+                                    lineNumber: insertPosition.lineNumber,
+                                    column: insertPosition.column + indent.length + openTagLength
+                                };
+                            }
+                        } else if (isCursorInBody && bodyStartMatch) {
+                            // إذا كان المؤشر في body، أضف السكربت في بداية body
                             const bodyStartIndex = bodyStartMatch.index + bodyStartMatch[0].length;
                             const bodyStartPosition = model.getPositionAt(bodyStartIndex);
                             
@@ -473,20 +497,37 @@ function getEditorHtml(): string {
                             
                             insertPosition = { lineNumber: bodyStartPosition.lineNumber + 1, column: 1 };
                             textToInsert = '\\n' + indent + text + '\\n';
+                            
+                            // تحديث موقع المؤشر بعد الإدراج
+                            if (cursorPositionAfterInsert) {
+                                cursorPositionAfterInsert = {
+                                    lineNumber: insertPosition.lineNumber,
+                                    column: insertPosition.column + indent.length + openTagLength
+                                };
+                            }
+                        } else if (bodyStartMatch) {
+                            // إذا لم يكن المؤشر في head أو body، أضف السكربت في بداية body بشكل افتراضي
+                            const bodyStartIndex = bodyStartMatch.index + bodyStartMatch[0].length;
+                            const bodyStartPosition = model.getPositionAt(bodyStartIndex);
+                            
+                            const bodyStartLine = model.getPositionAt(bodyStartMatch.index);
+                            const bodyStartLineContent = model.getLineContent(bodyStartLine.lineNumber);
+                            const baseIndent = bodyStartLineContent.match(/^\\s*/)[0] || '';
+                            const indent = baseIndent + '    ';
+                            
+                            insertPosition = { lineNumber: bodyStartPosition.lineNumber + 1, column: 1 };
+                            textToInsert = '\\n' + indent + text + '\\n';
+                            
+                            // تحديث موقع المؤشر بعد الإدراج
+                            if (cursorPositionAfterInsert) {
+                                cursorPositionAfterInsert = {
+                                    lineNumber: insertPosition.lineNumber,
+                                    column: insertPosition.column + indent.length + openTagLength
+                                };
+                            }
                         }
                     }
-                    else if (isEndOfBodyElement && bodyEndMatch) {
-                        const bodyEndIndex = bodyEndMatch.index;
-                        const bodyEndPosition = model.getPositionAt(bodyEndIndex);
-                        
-                        const bodyStartLine = model.getPositionAt(bodyStartMatch.index);
-                        const bodyStartLineContent = model.getLineContent(bodyStartLine.lineNumber);
-                        const baseIndent = bodyStartLineContent.match(/^\\s*/)[0] || '';
-                        const indent = baseIndent + '    ';
-                        
-                        insertPosition = { lineNumber: bodyEndPosition.lineNumber, column: bodyEndPosition.column };
-                        textToInsert = indent + text + '\\n';
-                    } else if (isHeadElement && headEndMatch) {
+                    else if (isHeadElement && headEndMatch) {
                         const headEndIndex = headEndMatch.index;
                         const headEndPosition = model.getPositionAt(headEndIndex);
                         
@@ -498,6 +539,13 @@ function getEditorHtml(): string {
                         insertPosition = { lineNumber: headEndPosition.lineNumber, column: headEndPosition.column };
                         textToInsert = indent + text + '\\n';
                         
+                        // تحديث موقع المؤشر بعد الإدراج
+                        if (cursorPositionAfterInsert) {
+                            cursorPositionAfterInsert = {
+                                lineNumber: insertPosition.lineNumber,
+                                column: insertPosition.column + indent.length + openTagLength
+                            };
+                        }
                     } else if (isBodyElement && bodyStartMatch) {
                         const bodyStartIndex = bodyStartMatch.index + bodyStartMatch[0].length;
                         const bodyEndIndex = bodyEndMatch ? bodyEndMatch.index : fullText.length;
@@ -517,8 +565,22 @@ function getEditorHtml(): string {
                             
                             if (!isInsideTag && lineContent.trim() !== '') {
                                 textToInsert = '\\n' + currentLineWhitespace + text;
+                                // تحديث موقع المؤشر بعد الإدراج
+                                if (cursorPositionAfterInsert) {
+                                    cursorPositionAfterInsert = {
+                                        lineNumber: insertPosition.lineNumber + 1,
+                                        column: currentLineWhitespace.length + openTagLength
+                                    };
+                                }
                             } else if (lineContent.trim() === '') {
                                 textToInsert = text;
+                                // تحديث موقع المؤشر بعد الإدراج
+                                if (cursorPositionAfterInsert) {
+                                    cursorPositionAfterInsert = {
+                                        lineNumber: insertPosition.lineNumber,
+                                        column: openTagLength
+                                    };
+                                }
                             }
                         } else {
                             if (bodyEndMatch) {
@@ -532,11 +594,27 @@ function getEditorHtml(): string {
                                 
                                 insertPosition = { lineNumber: bodyEndPosition.lineNumber, column: bodyEndPosition.column };
                                 textToInsert = indent + text + '\\n';
+                                
+                                // تحديث موقع المؤشر بعد الإدراج
+                                if (cursorPositionAfterInsert) {
+                                    cursorPositionAfterInsert = {
+                                        lineNumber: insertPosition.lineNumber,
+                                        column: insertPosition.column + indent.length + openTagLength
+                                    };
+                                }
                             } else {
                                 const lastLine = model.getLineCount();
                                 const lastColumn = model.getLineLength(lastLine) + 1;
                                 insertPosition = { lineNumber: lastLine, column: lastColumn };
                                 textToInsert = '\\n' + text;
+                                
+                                // تحديث موقع المؤشر بعد الإدراج
+                                if (cursorPositionAfterInsert) {
+                                    cursorPositionAfterInsert = {
+                                        lineNumber: insertPosition.lineNumber,
+                                        column: insertPosition.column + 1 + openTagLength
+                                    };
+                                }
                             }
                         }
                     } else {
@@ -545,6 +623,22 @@ function getEditorHtml(): string {
                         
                         if (!isInsideTag && lineContent.trim() !== '') {
                             textToInsert = '\\n' + currentLineWhitespace + text;
+                            // تحديث موقع المؤشر بعد الإدراج
+                            if (cursorPositionAfterInsert) {
+                                cursorPositionAfterInsert = {
+                                    lineNumber: insertPosition.lineNumber + 1,
+                                    column: currentLineWhitespace.length + openTagLength
+                                };
+                            }
+                        } else {
+                            textToInsert = text;
+                            // تحديث موقع المؤشر بعد الإدراج
+                            if (cursorPositionAfterInsert) {
+                                cursorPositionAfterInsert = {
+                                    lineNumber: insertPosition.lineNumber,
+                                    column: openTagLength
+                                };
+                            }
                         }
                     }
                     
@@ -557,6 +651,12 @@ function getEditorHtml(): string {
                         },
                         text: textToInsert
                     }]);
+                    
+                    // وضع المؤشر في المنتصف إذا كان الوسم يحتاج إلى ذلك
+                    if (cursorPositionAfterInsert) {
+                        editor.setPosition(cursorPositionAfterInsert);
+                        editor.focus();
+                    }
                     break;
                     
                 case 'undo':

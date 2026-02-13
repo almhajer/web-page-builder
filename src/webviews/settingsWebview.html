@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعدادات Web Page Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #1e1e1e;
+            color: #cccccc;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #3c3c3c;
+        }
+        .header h1 {
+            font-size: 24px;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #888888;
+            font-size: 14px;
+        }
+        .settings-section {
+            background-color: #252526;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .settings-section h2 {
+            font-size: 18px;
+            color: #ffffff;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #3c3c3c;
+        }
+        .setting-item {
+            margin-bottom: 20px;
+        }
+        .setting-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #cccccc;
+        }
+        .setting-item select,
+        .setting-item input {
+            width: 100%;
+            padding: 10px;
+            background-color: #3c3c3c;
+            border: 1px solid #3c3c3c;
+            border-radius: 4px;
+            color: #cccccc;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .setting-item select:focus,
+        .setting-item input:focus {
+            outline: none;
+            border-color: #007acc;
+        }
+        .setting-item select:hover {
+            background-color: #4c4c4c;
+        }
+        .save-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #007acc;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .save-btn:hover {
+            background-color: #005a9e;
+        }
+        .save-btn:active {
+            background-color: #004578;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>إعدادات Web Page Builder</h1>
+            <p>قم بتخصيص إعدادات الإضافة</p>
+        </div>
+
+        <div class="settings-section">
+            <h2>اللغة / Language</h2>
+            <div class="setting-item">
+                <label for="language-select">اختر اللغة</label>
+                <select id="language-select" onchange="saveLanguage(this.value)">
+                    <option value="auto">تلقائي - Auto</option>
+                    <option value="ar">العربية - Arabic</option>
+                    <option value="en">English - الإنجليزية</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="save-btn" onclick="saveSettings()">حفظ الإعدادات</button>
+    </div>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+
+        // تحميل اللغة المحفوظة
+        document.addEventListener('DOMContentLoaded', function() {
+            vscode.postMessage({
+                type: 'getSettings'
+            });
+        });
+
+        // استقبال الإعدادات من الإضافة
+        window.addEventListener('message', event => {
+            const message = event.data;
+            
+            switch (message.type) {
+                case 'settingsLoaded':
+                    // تعيين القيم المحفوظة
+                    if (message.language) {
+                        document.getElementById('language-select').value = message.language;
+                    }
+                    break;
+            }
+        });
+
+        // حفظ اللغة
+        function saveLanguage(language) {
+            vscode.postMessage({
+                type: 'saveLanguage',
+                language: language
+            });
+        }
+
+        // حفظ الإعدادات
+        function saveSettings() {
+            const language = document.getElementById('language-select').value;
+            vscode.postMessage({
+                type: 'saveLanguage',
+                language: language
+            });
+        }
+    </script>
+</body>
+</html>

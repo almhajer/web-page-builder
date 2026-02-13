@@ -5,6 +5,7 @@ let currentLocaleStrings = null;
 let currentLocale = 'ar';
 
 function sendMessage(type, tag) {
+    console.log('sendMessage called:', type, tag);
     vscode.postMessage({
         type: type,
         tag: tag

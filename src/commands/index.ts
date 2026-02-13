@@ -12,9 +12,11 @@ const COMMANDS = {
     REDO: 'webPageBuilder.redo',
     VIEW_SOURCE: 'webPageBuilder.viewSource',
     OPEN_FILE: 'webPageBuilder.openFile',
+    OPEN_BROWSER: 'webPageBuilder.openBrowser',
     SAVE_AS: 'webPageBuilder.saveAs',
     OPEN_BUILD: 'webPageBuilder.openBuild',
     SETTINGS: 'webPageBuilder.settings',
+    OPEN_SETTINGS: 'webPageBuilder.openSettings',
     OPEN_WEBVIEWS: 'webPageBuilder.openWebviews',
     TAGS: 'webPageBuilder.tags',
     METADATA: 'webPageBuilder.metadata',
@@ -112,12 +114,20 @@ export function registerCommands(context: vscode.ExtensionContext): void {
             await handleOpenFile(context);
         }),
 
+        vscode.commands.registerCommand(COMMANDS.OPEN_BROWSER, async () => {
+            await handleOpenBrowser(context);
+        }),
+
         vscode.commands.registerCommand(COMMANDS.OPEN_BUILD, () => {
             vscode.window.showInformationMessage('فتح البناء...');
         }),
 
         vscode.commands.registerCommand(COMMANDS.SETTINGS, () => {
             vscode.window.showInformationMessage('الإعدادات...');
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.OPEN_SETTINGS, async () => {
+            await handleOpenSettings(context);
         }),
 
         vscode.commands.registerCommand(COMMANDS.OPEN_WEBVIEWS, () => {
@@ -385,4 +395,53 @@ async function handleOpenFile(context: vscode.ExtensionContext): Promise<void> {
     } catch (error) {
         vscode.window.showErrorMessage(`فشل في قراءة الملف: ${error}`);
     }
+}
+
+/**
+ * معالجة أمر فتح في المتصفح
+ */
+async function handleOpenBrowser(context: vscode.ExtensionContext): Promise<void> {
+    const editorPanel = EditorPanel.getInstance();
+    
+    // التأكد من أن EditorPanel مفتوح
+    if (!editorPanel) {
+        vscode.window.showErrorMessage(MESSAGES.EDITOR_NOT_OPEN);
+        return;
+    }
+
+    // إظهار EditorPanel والتأكد من جاهزيته
+    editorPanel.reveal(vscode.ViewColumn.One);
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // الحصول على الكود مع إعادة المحاولة
+    let code: string;
+    try {
+        code = await getCodeWithRetry(editorPanel);
+    } catch (error) {
+        vscode.window.showErrorMessage(MESSAGES.SAVE_FAILED);
+        return;
+    }
+
+    // إنشاء ملف HTML مؤقت
+    const tempDir = vscode.Uri.joinPath(context.globalStorageUri, 'temp');
+    await vscode.workspace.fs.createDirectory(tempDir).then(() => {}, () => {});
+    
+    const timestamp = Date.now();
+    const tempFileUri = vscode.Uri.joinPath(tempDir, `preview-${timestamp}.html`);
+    
+    await vscode.workspace.fs.writeFile(tempFileUri, Buffer.from(code, 'utf8'));
+    
+    // فتح الملف في المتصفح الافتراضي
+    vscode.env.openExternal(tempFileUri);
+    
+    vscode.window.showInformationMessage('تم فتح الصفحة في المتصفح');
+}
+
+/**
+ * معالجة أمر فتح الإعدادات
+ */
+async function handleOpenSettings(context: vscode.ExtensionContext): Promise<void> {
+    // استيراد SettingsPanel بشكل ديناميكي لتجنب الاعتماد الدائري
+    const { SettingsPanel } = await import('../panels/settingsPanel');
+    await SettingsPanel.create(context);
 }

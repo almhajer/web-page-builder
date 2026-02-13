@@ -53,6 +53,12 @@
         "icon": "$(folder-opened)"
       },
       {
+        "command": "webPageBuilder.openBrowser",
+        "title": "فتح في المتصفح",
+        "category": "Web Page Builder",
+        "icon": "$(globe)"
+      },
+      {
         "command": "webPageBuilder.saveAs",
         "title": "حفظ باسم",
         "category": "Web Page Builder",
@@ -155,6 +161,12 @@
         "icon": "$(settings-gear)"
       },
       {
+        "command": "webPageBuilder.openSettings",
+        "title": "فتح الإعدادات",
+        "category": "Web Page Builder",
+        "icon": "$(settings-gear)"
+      },
+      {
         "command": "webPageBuilder.help",
         "title": "المساعدة",
         "category": "Web Page Builder",
@@ -189,14 +201,19 @@
     "menus": {
       "view/title": [
         {
-          "command": "webPageBuilder.openWebviews",
+          "command": "webPageBuilder.openFile",
           "when": "view == webPageBuilder.sidebar",
           "group": "navigation@1"
         },
         {
-          "command": "webPageBuilder.openFile",
+          "command": "webPageBuilder.openBrowser",
           "when": "view == webPageBuilder.sidebar",
           "group": "navigation@2"
+        },
+        {
+          "command": "webPageBuilder.openWebviews",
+          "when": "view == webPageBuilder.sidebar",
+          "group": "navigation@3"
         },
         {
           "command": "webPageBuilder.viewSource",
@@ -227,6 +244,11 @@
           "command": "webPageBuilder.settings",
           "when": "view == webPageBuilder.sidebar",
           "group": "navigation@8"
+        },
+        {
+          "command": "webPageBuilder.openSettings",
+          "when": "view == webPageBuilder.sidebar",
+          "group": "navigation@9"
         }
       ],
       "editor/title": [

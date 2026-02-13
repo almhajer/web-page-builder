@@ -30,20 +30,20 @@ const VOID_TAGS = [
  * الوسوم التي تتطلب خصائص إلزامية
  */
 const TAGS_WITH_REQUIRED_ATTRIBUTES: Record<string, string> = {
-    'input': '<input value=""/>',
-    'img': '<img src=""/>',
+    'input': '<input value="">',
+    'img': '<img src="">',
     'a': '<a href=""></a>',
-    'link': '<link rel="stylesheet" href=""/>',
-    'source': '<source src=""/>',
-    'track': '<track src=""/>',
-    'embed': '<embed src=""/>',
+    'link': '<link rel="stylesheet" href="">',
+    'source': '<source src="">',
+    'track': '<track src="">',
+    'embed': '<embed src="">',
     'video': '<video src=""></video>',
     'audio': '<audio src=""></audio>',
     'iframe': '<iframe src=""></iframe>',
     'form': '<form action="" method=""></form>',
     'button': '<button type=""></button>',
-    'meta': '<meta name="" content=""/>',
-    'base': '<base href=""/>',
+    'meta': '<meta name="" content="">',
+    'base': '<base href="">',
     'object': '<object data=""></object>',
 };
 
@@ -51,7 +51,7 @@ const TAGS_WITH_REQUIRED_ATTRIBUTES: Record<string, string> = {
  * العناصر الخاصة المخصصة (روابط CSS و JavaScript)
  */
 const SPECIAL_ELEMENTS: Record<string, string> = {
-    'link-stylesheet': '<link rel="stylesheet" href="style.css">',
+    'link-stylesheet': '<link rel="stylesheet" href="">',
     'script-src': '<script type="text/javascript" src=""></script>',
     'script-internal': '<script type="text/javascript">\n    \n</script>',
 };
@@ -138,6 +138,8 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
      * معالج الرسائل من Webview
      */
     private async handleMessage(data: any): Promise<void> {
+        console.log('Sidebar received message:', data);
+        
         switch (data.type) {
             case WEBVIEW_MESSAGES.OPEN_BUILDER:
                 vscode.window.showInformationMessage('Opening Web Page Builder...');
@@ -151,18 +153,27 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
                 vscode.window.showInformationMessage('Saving as...');
                 break;
             case WEBVIEW_MESSAGES.INSERT_TAG:
+                console.log('INSERT_TAG received, tag:', data.tag);
                 // إدراج كود الوسم في مكان المؤشر في المحرر
                 let editorPanel = EditorPanel.getInstance();
+                console.log('EditorPanel instance:', editorPanel ? 'exists' : 'null');
+                
                 if (!editorPanel && this._context) {
+                    console.log('Creating new EditorPanel...');
                     // إعادة فتح المحرر إذا كان مغلقاً
                     await EditorPanel.create(this._context);
                     editorPanel = EditorPanel.getInstance();
                 }
+                
                 if (editorPanel) {
                     const tag = data.tag;
                     const tagCode = this.generateTagCode(tag);
+                    console.log('Generated tag code:', tagCode);
                     editorPanel.reveal(vscode.ViewColumn.One);
                     editorPanel.insertTextAtCursor(tagCode);
+                    vscode.window.showInformationMessage(`تم إدراج: ${tag}`);
+                } else {
+                    vscode.window.showErrorMessage('المحرر غير متاح');
                 }
                 break;
             case WEBVIEW_MESSAGES.OPEN_SETTINGS:

@@ -140,8 +140,13 @@ export class SettingsPanel {
      */
     private static async getSettingsHtml(extensionUri: vscode.Uri): Promise<string> {
         try {
-            const htmlPath = path.join(extensionUri.fsPath, 'src', 'webviews', 'settingsWebview.html');
-            const htmlContent = await readFile(htmlPath, 'utf8');
+            const htmlUri = vscode.Uri.joinPath(extensionUri, 'out', 'webviews', 'settingsWebview.html');
+            const htmlData = await vscode.workspace.fs.readFile(htmlUri);
+            
+            // تحويل Uint8Array إلى نص باستخدام TextDecoder
+            const decoder = new TextDecoder('utf-8');
+            const htmlContent = decoder.decode(htmlData);
+            
             return htmlContent;
         } catch (error) {
             console.error('Error loading settings webview files:', error);

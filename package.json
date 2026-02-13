@@ -2,7 +2,7 @@
   "name": "web-page-builder",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.0.0",
+  "version": "0.0.1",
    "publisher": "Arabic-language",
   "icon": "icon.png",
   "repository": {
@@ -345,10 +345,13 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ && npm run copy-webviews",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts"
+    "lint": "eslint src --ext ts",
+    "copy-webviews": "mkdir -p out/webviews out/locales && cp -r src/webviews/* out/webviews/ && cp -r src/locales/* out/locales/",
+    "package": "vsce package",
+    "vscode:package": "npm run compile && vsce package"
   },
   "devDependencies": {
     "@types/node": "^16.18.0",

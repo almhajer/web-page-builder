@@ -12,3 +12,7 @@ node_modules/**
 *.vsix
 .git/**
 .DS_Store
+CHANGELOG.md
+CHANGES.md
+REFACTORING_PLAN.md
+changelog.md

@@ -104,10 +104,18 @@ const TAGS_WITH_COMPLEX_STRUCTURE: Record<string, string> = {
  * WebPageBuilderSidebarProvider - موفر Sidebar View
  */
 export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider {
+    private static instance: WebPageBuilderSidebarProvider | null = null;
     private _view?: vscode.WebviewView;
     private _context?: vscode.ExtensionContext;
 
     constructor(private readonly _extensionUri: vscode.Uri) {}
+    
+    /**
+     * الحصول على المثيل الحالي
+     */
+    public static getInstance(): WebPageBuilderSidebarProvider | null {
+        return WebPageBuilderSidebarProvider.instance;
+    }
     
     /**
      * تعيين سياق الإضافة
@@ -122,6 +130,7 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
         _token: vscode.CancellationToken
     ): Promise<void> {
         this._view = webviewView;
+        WebPageBuilderSidebarProvider.instance = this;
 
         webviewView.webview.options = {
             enableScripts: true,
@@ -133,6 +142,9 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
         webviewView.webview.onDidReceiveMessage((data) => {
             this.handleMessage(data);
         });
+        
+        // إرسال الترجمات عند تحميل الـ webview
+        this.sendLocaleToWebview();
     }
 
     /**
@@ -236,6 +248,13 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
     }
 
     /**
+     * تحديث الترجمات (طريقة عامة)
+     */
+    public updateLocale(): void {
+        this.sendLocaleToWebview();
+    }
+
+    /**
      * توليد كود الوسم
      * @param tag اسم الوسم
      * @returns كود الوسم
@@ -299,16 +318,23 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
      */
     private async _getHtmlForWebview(webview: vscode.Webview): Promise<string> {
         try {
-            const htmlPath = path.join(this._extensionUri.fsPath, 'src', 'webviews', 'sidebarWebview.html');
-            const cssPath = path.join(this._extensionUri.fsPath, 'src', 'webviews', 'sidebar.css');
-            const jsPath = path.join(this._extensionUri.fsPath, 'src', 'webviews', 'sidebar.js');
-
-            const [htmlContent, cssContent, jsContent] = await Promise.all([
-                readFile(htmlPath, 'utf-8'),
-                readFile(cssPath, 'utf-8'),
-                readFile(jsPath, 'utf-8')
+            // استخدام vscode.Uri.joinPath للحصول على URIs صحيحة تعمل في جميع البيئات
+            const htmlUri = vscode.Uri.joinPath(this._extensionUri, 'out', 'webviews', 'sidebarWebview.html');
+            const cssUri = vscode.Uri.joinPath(this._extensionUri, 'out', 'webviews', 'sidebar.css');
+            const jsUri = vscode.Uri.joinPath(this._extensionUri, 'out', 'webviews', 'sidebar.js');
+            
+            const [htmlData, cssData, jsData] = await Promise.all([
+                vscode.workspace.fs.readFile(htmlUri),
+                vscode.workspace.fs.readFile(cssUri),
+                vscode.workspace.fs.readFile(jsUri)
             ]);
-
+            
+            // تحويل Uint8Array إلى نص باستخدام TextDecoder
+            const decoder = new TextDecoder('utf-8');
+            const htmlContent = decoder.decode(htmlData);
+            const cssContent = decoder.decode(cssData);
+            const jsContent = decoder.decode(jsData);
+            
             // استبدال روابط CSS و JS بالمحتوى المباشر
             return htmlContent
                 .replace('<link rel="stylesheet" href="sidebar.css">', `<style>${cssContent}</style>`)

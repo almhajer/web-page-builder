@@ -130,11 +130,12 @@ export function registerCommands(context: vscode.ExtensionContext): void {
 
         vscode.commands.registerCommand(COMMANDS.UPDATE_SIDEBAR_LOCALE, () => {
             const { WebPageBuilderSidebarProvider } = require('../providers/sidebarProvider');
-            // تحديث ترجمات sidebar عن طريق إرسال رسالة للـ provider
-            // سيتم التعامل مع هذا الأمر في sidebarProvider
-            // تحديث الترجمات فعلياً
-            const { loadLocale, getLocale } = require('../locales/localeService');
-            loadLocale(getLocale());
+            const sidebarProvider = WebPageBuilderSidebarProvider.getInstance();
+            
+            if (sidebarProvider) {
+                // إرسال تحديث الترجمات للـ sidebar
+                sidebarProvider.updateLocale();
+            }
         }),
 
         vscode.commands.registerCommand(COMMANDS.OPEN_WEBVIEWS, () => {

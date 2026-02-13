@@ -3,11 +3,15 @@ import { EditorPanel } from './panels/editorPanel';
 import { WebPageBuilderPanel } from './panels/webPageBuilderPanel';
 import { WebPageBuilderSidebarProvider } from './providers/sidebarProvider';
 import { registerCommands } from './commands';
+import { loadLocale, getLocale } from './locales/localeService';
 
 /**
  * تفعيل الإضافة
  */
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+    // تحميل اللغة عند تفعيل الإضافة
+    loadLocale(getLocale());
+
     // إنشاء EditorPanel أولاً
     await EditorPanel.create(context);
 
@@ -32,6 +36,34 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider('webPageBuilder.sidebar', sidebarProvider)
     );
+
+    // إضافة مستمع لتغييرات إعدادات VSCode
+    const configChangeListener = vscode.workspace.onDidChangeConfiguration(async (e) => {
+        if (e.affectsConfiguration('webPageBuilder.language')) {
+            // إعادة تحميل اللغة عند تغيير إعداد اللغة في الإضافة
+            const newLocale = getLocale();
+            loadLocale(newLocale);
+            
+            // إرسال تحديث الترجمات للسايد بار
+            vscode.commands.executeCommand('webPageBuilder.updateSidebarLocale');
+        }
+        
+        // مراقبة تغيير لغة VSCode نفسها
+        if (e.affectsConfiguration('general.locale')) {
+            const config = vscode.workspace.getConfiguration('webPageBuilder');
+            const languageSetting = config.get<string>('language', 'auto');
+            
+            if (languageSetting === 'auto') {
+                // إعادة تحميل اللغة فقط إذا كان الإعداد على "تلقائي"
+                const newLocale = getLocale();
+                loadLocale(newLocale);
+                
+                // إرسال تحديث الترجمات للسايد بار
+                vscode.commands.executeCommand('webPageBuilder.updateSidebarLocale');
+            }
+        }
+    });
+    context.subscriptions.push(configChangeListener);
 }
 
 /**

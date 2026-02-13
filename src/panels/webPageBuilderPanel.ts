@@ -187,16 +187,23 @@ export class WebPageBuilderPanel {
      */
     private async _getHtmlForWebview(webview: vscode.Webview): Promise<string> {
         try {
-            const htmlPath = path.join(this._extensionUri.fsPath, 'src', 'webviews', 'webPageBuilderPanel.html');
-            const cssPath = path.join(this._extensionUri.fsPath, 'src', 'webviews', 'webPageBuilderPanel.css');
-            const jsPath = path.join(this._extensionUri.fsPath, 'src', 'webviews', 'webPageBuilderPanel.js');
-
-            const [htmlContent, cssContent, jsContent] = await Promise.all([
-                readFile(htmlPath, 'utf-8'),
-                readFile(cssPath, 'utf-8'),
-                readFile(jsPath, 'utf-8')
+            // استخدام vscode.Uri.joinPath للحصول على URIs صحيحة تعمل في جميع البيئات
+            const htmlUri = vscode.Uri.joinPath(this._extensionUri, 'out', 'webviews', 'webPageBuilderPanel.html');
+            const cssUri = vscode.Uri.joinPath(this._extensionUri, 'out', 'webviews', 'webPageBuilderPanel.css');
+            const jsUri = vscode.Uri.joinPath(this._extensionUri, 'out', 'webviews', 'webPageBuilderPanel.js');
+            
+            const [htmlData, cssData, jsData] = await Promise.all([
+                vscode.workspace.fs.readFile(htmlUri),
+                vscode.workspace.fs.readFile(cssUri),
+                vscode.workspace.fs.readFile(jsUri)
             ]);
-
+            
+            // تحويل Uint8Array إلى نص باستخدام TextDecoder
+            const decoder = new TextDecoder('utf-8');
+            const htmlContent = decoder.decode(htmlData);
+            const cssContent = decoder.decode(cssData);
+            const jsContent = decoder.decode(jsData);
+            
             // استبدال روابط CSS و JS بالمحتوى المباشر
             return htmlContent
                 .replace('<link rel="stylesheet" href="webPageBuilderPanel.css">', `<style>${cssContent}</style>`)

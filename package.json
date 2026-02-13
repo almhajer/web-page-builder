@@ -161,6 +161,11 @@
         "icon": "$(settings-gear)"
       },
       {
+        "command": "webPageBuilder.updateSidebarLocale",
+        "title": "تحديث ترجمات Sidebar",
+        "category": "Web Page Builder"
+      },
+      {
         "command": "webPageBuilder.help",
         "title": "المساعدة",
         "category": "Web Page Builder",

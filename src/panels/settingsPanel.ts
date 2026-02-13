@@ -122,6 +122,9 @@ export class SettingsPanel {
                         loadLocale(getLocale());
                     }
                     
+                    // إرسال رسالة تحديث الترجمات للـ sidebar
+                    vscode.commands.executeCommand('webPageBuilder.updateSidebarLocale');
+                    
                     // إظهار رسالة نجاح
                     const messageText = newLanguage === 'ar'
                         ? 'تم تغيير اللغة بنجاح'

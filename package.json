@@ -5,6 +5,10 @@
   "version": "0.0.0",
   "publisher": "your-publisher-name",
   "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/almhajer/web-page-builder.git"
+  },
   "engines": {
     "vscode": "^1.74.0"
   },

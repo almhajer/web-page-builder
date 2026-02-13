@@ -115,15 +115,21 @@ export class SettingsPanel {
                     const settingsConfig2 = vscode.workspace.getConfiguration('webPageBuilder');
                     await settingsConfig2.update('language', newLanguage, vscode.ConfigurationTarget.Global);
                     
-                    // إعادة تحميل الترجمات
-                    if (newLanguage !== 'auto') {
-                        loadLocale(newLanguage);
+                    // تحديد اللغة الفعلية التي سيتم استخدامها
+                    let actualLanguage: 'ar' | 'en';
+                    if (newLanguage === 'auto') {
+                        // استخدام لغة VS Code
+                        const vscodeLanguage = vscode.env.language;
+                        actualLanguage = vscodeLanguage.startsWith('ar') ? 'ar' : 'en';
                     } else {
-                        loadLocale(getLocale());
+                        actualLanguage = newLanguage;
                     }
                     
+                    // إعادة تحميل الترجمات باللغة الفعلية
+                    loadLocale(actualLanguage);
+                    
                     // إرسال رسالة تحديث الترجمات للـ sidebar
-                    vscode.commands.executeCommand('webPageBuilder.updateSidebarLocale');
+                    await vscode.commands.executeCommand('webPageBuilder.updateSidebarLocale');
                     
                     // إظهار رسالة نجاح
                     const messageText = newLanguage === 'ar'

@@ -26,5 +26,6 @@
   "webPageBuilder.publish": "النشر",
   "webPageBuilder.openSettings": "فتح الإعدادات",
   "webPageBuilder.help": "المساعدة",
-  "webPageBuilder.openWebviews": "صفحة التصميم"
+  "webPageBuilder.openWebviews": "صفحة التصميم",
+  "webPageBuilder.updateSidebarLocale": "تحديث لغة الشريط الجانبي"
 }

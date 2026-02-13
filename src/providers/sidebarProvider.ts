@@ -3,7 +3,7 @@ import * as path from 'path';
 import { readFile } from 'fs/promises';
 import { EditorPanel } from '../panels/editorPanel';
 import { resetSavedFilePath } from '../commands/index';
-import { loadLocale, getLocale, t, LocaleKey } from '../locales/localeService';
+import { loadLocale, getLocale, t, LocaleKey, getCurrentLocaleKey, currentLocale } from '../locales/localeService';
 
 /**
  * رسائل Webview
@@ -237,8 +237,17 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
      */
     private sendLocaleToWebview(): void {
         if (this._view) {
-            const localeKey = getLocale();
-            const localeData = loadLocale(localeKey);
+            // استخدام الترجمات المحملة في الذاكرة بدلاً من قراءة الإعدادات مرة أخرى
+            // التحقق من أن الترجمات محملة، وإلا قم بتحميلها
+            let localeData = currentLocale;
+            let localeKey = getCurrentLocaleKey();
+            
+            if (!localeData) {
+                // إذا لم تكن الترجمات محملة، قم بتحميلها
+                localeKey = getLocale();
+                localeData = loadLocale(localeKey);
+            }
+            
             this._view.webview.postMessage({
                 type: 'localeUpdate',
                 locale: localeKey,

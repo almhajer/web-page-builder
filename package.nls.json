@@ -26,5 +26,6 @@
   "webPageBuilder.publish": "Publish",
   "webPageBuilder.openSettings": "Settings",
   "webPageBuilder.help": "Help",
-  "webPageBuilder.openWebviews": "Design Page"
+  "webPageBuilder.openWebviews": "Design Page",
+  "webPageBuilder.updateSidebarLocale": "Update Sidebar Locale"
 }

@@ -107,8 +107,12 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
     private static instance: WebPageBuilderSidebarProvider | null = null;
     private _view?: vscode.WebviewView;
     private _context?: vscode.ExtensionContext;
+    private pendingLocaleUpdate?: { localeKey: string; localeData: any };
 
-    constructor(private readonly _extensionUri: vscode.Uri) {}
+    constructor(private readonly _extensionUri: vscode.Uri) {
+        // تعيين المثيل عند الإنشاء لضمان توفره حتى قبل فتح الـ sidebar
+        WebPageBuilderSidebarProvider.instance = this;
+    }
     
     /**
      * الحصول على المثيل الحالي
@@ -144,7 +148,18 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
         });
         
         // إرسال الترجمات عند تحميل الـ webview
-        this.sendLocaleToWebview();
+        // إذا كانت هناك ترجمات مخزنة، استخدمها، وإلا قم بتحميل الترجمات الحالية
+        if (this.pendingLocaleUpdate) {
+            console.log('Sending pending locale update:', this.pendingLocaleUpdate.localeKey);
+            this._view.webview.postMessage({
+                type: 'localeUpdate',
+                locale: this.pendingLocaleUpdate.localeKey,
+                strings: this.pendingLocaleUpdate.localeData
+            });
+            this.pendingLocaleUpdate = undefined;
+        } else {
+            this.sendLocaleToWebview();
+        }
     }
 
     /**
@@ -236,23 +251,32 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
      * إرسال الترجمات للـ webview
      */
     private sendLocaleToWebview(): void {
+        // استخدام الترجمات المحملة في الذاكرة بدلاً من قراءة الإعدادات مرة أخرى
+        // التحقق من أن الترجمات محملة، وإلا قم بتحميلها
+        let localeData = currentLocale;
+        let localeKey = getCurrentLocaleKey();
+        
+        console.log('sendLocaleToWebview called, currentLocaleKey:', localeKey, 'currentLocale:', localeData ? 'exists' : 'null');
+        
+        if (!localeData) {
+            // إذا لم تكن الترجمات محملة، قم بتحميلها
+            console.log('currentLocale is null, loading locale...');
+            localeKey = getLocale();
+            localeData = loadLocale(localeKey);
+            console.log('Loaded locale:', localeKey);
+        }
+        
         if (this._view) {
-            // استخدام الترجمات المحملة في الذاكرة بدلاً من قراءة الإعدادات مرة أخرى
-            // التحقق من أن الترجمات محملة، وإلا قم بتحميلها
-            let localeData = currentLocale;
-            let localeKey = getCurrentLocaleKey();
-            
-            if (!localeData) {
-                // إذا لم تكن الترجمات محملة، قم بتحميلها
-                localeKey = getLocale();
-                localeData = loadLocale(localeKey);
-            }
-            
             this._view.webview.postMessage({
                 type: 'localeUpdate',
                 locale: localeKey,
                 strings: localeData
             });
+            console.log('Locale update message sent to webview');
+        } else {
+            // تخزين الترجمات لاستخدامها لاحقاً عند فتح الـ sidebar
+            this.pendingLocaleUpdate = { localeKey, localeData };
+            console.log('Sidebar view is not available, storing locale update for later:', localeKey);
         }
     }
 

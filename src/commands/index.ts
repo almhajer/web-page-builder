@@ -129,12 +129,18 @@ export function registerCommands(context: vscode.ExtensionContext): void {
         }),
 
         vscode.commands.registerCommand(COMMANDS.UPDATE_SIDEBAR_LOCALE, () => {
+            console.log('webPageBuilder.updateSidebarLocale command executed');
             const { WebPageBuilderSidebarProvider } = require('../providers/sidebarProvider');
             const sidebarProvider = WebPageBuilderSidebarProvider.getInstance();
+            
+            console.log('Sidebar provider instance:', sidebarProvider ? 'exists' : 'null');
             
             if (sidebarProvider) {
                 // إرسال تحديث الترجمات للـ sidebar
                 sidebarProvider.updateLocale();
+                console.log('Sidebar locale updated');
+            } else {
+                console.warn('Sidebar provider instance is null, cannot update locale');
             }
         }),
 

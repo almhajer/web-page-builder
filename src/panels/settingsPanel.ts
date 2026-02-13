@@ -112,8 +112,10 @@ export class SettingsPanel {
                 case WEBVIEW_MESSAGES.SAVE_LANGUAGE:
                     // حفظ اللغة
                     const newLanguage = message.language as 'auto' | 'ar' | 'en';
+                    console.log('Saving language:', newLanguage);
                     const settingsConfig2 = vscode.workspace.getConfiguration('webPageBuilder');
                     await settingsConfig2.update('language', newLanguage, vscode.ConfigurationTarget.Global);
+                    console.log('Language saved to settings:', newLanguage);
                     
                     // تحديد اللغة الفعلية التي سيتم استخدامها
                     let actualLanguage: 'ar' | 'en';
@@ -121,15 +123,19 @@ export class SettingsPanel {
                         // استخدام لغة VS Code
                         const vscodeLanguage = vscode.env.language;
                         actualLanguage = vscodeLanguage.startsWith('ar') ? 'ar' : 'en';
+                        console.log('Auto language detected:', actualLanguage);
                     } else {
                         actualLanguage = newLanguage;
+                        console.log('Using selected language:', actualLanguage);
                     }
                     
                     // إعادة تحميل الترجمات باللغة الفعلية
                     loadLocale(actualLanguage);
+                    console.log('Locale loaded:', actualLanguage);
                     
                     // إرسال رسالة تحديث الترجمات للـ sidebar
                     await vscode.commands.executeCommand('webPageBuilder.updateSidebarLocale');
+                    console.log('Update sidebar locale command executed');
                     
                     // إظهار رسالة نجاح
                     const messageText = newLanguage === 'ar'

@@ -469,6 +469,34 @@ function getEditorHtml(): string {
                     let cursorPositionAfterInsert = null;
                     let cursorOffset = 0; // إزاحة المؤشر داخل textToInsert
                     
+                    // تحديد موقع المؤشر بناءً على نوع الوسم
+                    if (normalTagMatch) {
+                        // وسم عادي مع أو بدون سمات (مثل <a href=""></a> أو <h5></h5>)
+                        // المؤشر يجب أن يكون بين > و <
+                        const fullOpenTag = '<' + normalTagMatch[1] + normalTagMatch[2] + '>';
+                        cursorOffset = fullOpenTag.length;
+                        cursorPositionAfterInsert = { lineNumber: 0, column: 0 }; // مؤقت، سيتم تحديثه لاحقاً
+                    } else if (selfClosingTagMatch) {
+                        // وسم أحادي مع سمات (مثل <img src="">)
+                        // المؤشر يجب أن يكون داخل علامات الاقتباس للسمة الأولى الفارغة
+                        const attributes = selfClosingTagMatch[2];
+                        // البحث عن السمة الأولى ذات القيمة الفارغة (مع أو بدون مسافات حول =)
+                        const emptyAttrMatch = attributes.match(/([a-zA-Z-]+)\\s*=\\s*""/);
+                        if (emptyAttrMatch) {
+                            // حساب موقع المؤشر داخل علامات الاقتباس
+                            const beforeAttrIndex = text.indexOf(emptyAttrMatch[0]);
+                            const attrNameLength = emptyAttrMatch[1].length;
+                            // البحث عن موقع علامة الاقتباس المزدوجة الأولى
+                            const quoteIndex = text.indexOf('""', beforeAttrIndex);
+                            cursorOffset = quoteIndex + 1; // +1 للدخول داخل علامات الاقتباس
+                        } else {
+                            // إذا لم تكن هناك سمة فارغة، ضع المؤشر بعد وسم الفتح
+                            const fullTag = '<' + selfClosingTagMatch[1] + selfClosingTagMatch[2] + '/>';
+                            cursorOffset = fullTag.length;
+                        }
+                        cursorPositionAfterInsert = { lineNumber: 0, column: 0 }; // مؤقت، سيتم تحديثه لاحقاً
+                    }
+                    
                     if (normalTagMatch) {
                         // وسم عادي مع أو بدون سمات (مثل <a href=""></a> أو <h5></h5>)
                         // المؤشر يجب أن يكون بين > و <
@@ -496,6 +524,10 @@ function getEditorHtml(): string {
                     
                     // معالجة وسم script (داخلي أو خارجي) حسب موقع المؤشر
                     if (isInternalScript || isExternalScript) {
+                        // حساب طول وسم الفتح للمؤشر
+                        const openTagMatch = text.match(/^<([a-zA-Z][a-zA-Z0-9]*)([^>]*)>/);
+                        const openTagLength = openTagMatch ? ('<' + openTagMatch[1] + openTagMatch[2] + '>').length : 0;
+                        
                         if (isCursorInHead && headEndMatch) {
                             // إذا كان المؤشر في head، أضف السكربت في نهاية head
                             const headEndIndex = headEndMatch.index;

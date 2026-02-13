@@ -157,8 +157,19 @@ function toggleCategory(categoryId) {
                 // حساب موقع الزر بالنسبة للشاشة
                 var rect = this.getBoundingClientRect();
                 
-                // تعيين موقع الـ Tooltip
-                tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+                // التحقق من اتجاه الصفحة
+                var isRTL = document.documentElement.dir === 'rtl';
+                
+                // تعيين موقع الـ Tooltip مع مراعاة اتجاه الصفحة
+                // في RTL: المحاذاة من اليمين، في LTR: المحاذاة من اليسار
+                if (isRTL) {
+                    tooltip.style.right = (window.innerWidth - rect.right + rect.width / 2) + 'px';
+                    tooltip.style.left = 'auto';
+                } else {
+                    tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+                    tooltip.style.right = 'auto';
+                }
+                
                 tooltip.style.top = rect.top + 'px';
                 
                 // إظهار الـ Tooltip

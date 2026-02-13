@@ -181,16 +181,16 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
                 if (editorPanel) {
                     const tag = data.tag;
                     if (!tag) {
-                        vscode.window.showErrorMessage('لم يتم تحديد وسم');
+                        vscode.window.showErrorMessage(t('messages.tagNotSelected'));
                         return;
                     }
                     const tagCode = this.generateTagCode(tag);
                     console.log('Generated tag code:', tagCode);
                     editorPanel.reveal(vscode.ViewColumn.One);
                     editorPanel.insertTextAtCursor(tagCode);
-                    vscode.window.showInformationMessage(`تم إدراج: ${tag}`);
+                    vscode.window.showInformationMessage(t('messages.tagInserted', { tag }));
                 } else {
-                    vscode.window.showErrorMessage('المحرر غير متاح');
+                    vscode.window.showErrorMessage(t('messages.editorNotAvailable'));
                 }
                 break;
             case WEBVIEW_MESSAGES.OPEN_SETTINGS:
@@ -227,8 +227,8 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
         
         // إظهار رسالة نجاح
         const message = language === 'ar'
-            ? 'تم تغيير اللغة بنجاح'
-            : 'Language changed successfully';
+            ? t('messages.success')
+            : t('messages.success');
         vscode.window.showInformationMessage(message);
     }
 

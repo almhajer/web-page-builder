@@ -29,151 +29,151 @@
       },
       {
         "command": "webPageBuilder.viewSource",
-        "title": "عرض المصدر",
+        "title": "%webPageBuilder.viewSource%",
         "category": "Web Page Builder",
         "icon": "$(file-code)"
       },
       {
         "command": "webPageBuilder.undo",
-        "title": "تراجع",
+        "title": "%webPageBuilder.undo%",
         "category": "Web Page Builder",
         "icon": "$(discard)"
       },
       {
         "command": "webPageBuilder.redo",
-        "title": "إعادة",
+        "title": "%webPageBuilder.redo%",
         "category": "Web Page Builder",
         "icon": "$(redo)"
       },
     
       {
         "command": "webPageBuilder.openFile",
-        "title": "فتح ملف",
+        "title": "%webPageBuilder.openFile%",
         "category": "Web Page Builder",
         "icon": "$(folder-opened)"
       },
       {
         "command": "webPageBuilder.openBrowser",
-        "title": "فتح في المتصفح",
+        "title": "%webPageBuilder.openBrowser%",
         "category": "Web Page Builder",
         "icon": "$(globe)"
       },
       {
         "command": "webPageBuilder.saveAs",
-        "title": "حفظ باسم",
+        "title": "%webPageBuilder.saveAs%",
         "category": "Web Page Builder",
         "icon": "$(save)"
       },
       {
         "command": "webPageBuilder.openBuild",
-        "title": "فتح خصائص العناصر",
+        "title": "%webPageBuilder.openBuild%",
         "category": "Web Page Builder",
         "icon": "$(list-tree)"
       },
       {
         "command": "webPageBuilder.tags",
-        "title": "قائمة الوسوم",
+        "title": "%webPageBuilder.tags%",
         "category": "Web Page Builder",
         "icon": "$(symbol-tag)"
       },
       {
         "command": "webPageBuilder.metadata",
-        "title": "البيانات الوصفية",
+        "title": "%webPageBuilder.metadata%",
         "category": "Web Page Builder",
         "icon": "$(file-code)"
       },
       {
         "command": "webPageBuilder.content",
-        "title": "المحتوى",
+        "title": "%webPageBuilder.content%",
         "category": "Web Page Builder",
         "icon": "$(file-text)"
       },
       {
         "command": "webPageBuilder.media",
-        "title": "الوسائط",
+        "title": "%webPageBuilder.media%",
         "category": "Web Page Builder",
         "icon": "$(file-media)"
       },
       {
         "command": "webPageBuilder.forms",
-        "title": "النماذج",
+        "title": "%webPageBuilder.forms%",
         "category": "Web Page Builder",
         "icon": "$(checklist)"
       },
       {
         "command": "webPageBuilder.interactive",
-        "title": "التفاعلية",
+        "title": "%webPageBuilder.interactive%",
         "category": "Web Page Builder",
         "icon": "$(beaker)"
       },
       {
         "command": "webPageBuilder.text",
-        "title": "النص",
+        "title": "%webPageBuilder.text%",
         "category": "Web Page Builder",
         "icon": "$(text)"
       },
       {
         "command": "webPageBuilder.embedded",
-        "title": "المضمنة",
+        "title": "%webPageBuilder.embedded%",
         "category": "Web Page Builder",
         "icon": "$(file-binary)"
       },
       {
         "command": "webPageBuilder.scripting",
-        "title": "السكربت",
+        "title": "%webPageBuilder.scripting%",
         "category": "Web Page Builder",
         "icon": "$(code)"
       },
       {
         "command": "webPageBuilder.editing",
-        "title": "التعديل",
+        "title": "%webPageBuilder.editing%",
         "category": "Web Page Builder",
         "icon": "$(edit)"
       },
       {
         "command": "webPageBuilder.view",
-        "title": "العرض",
+        "title": "%webPageBuilder.view%",
         "category": "Web Page Builder",
         "icon": "$(eye)"
       },
       {
         "command": "webPageBuilder.preview",
-        "title": "المعاينة",
+        "title": "%webPageBuilder.preview%",
         "category": "Web Page Builder",
         "icon": "$(play)"
       },
       {
         "command": "webPageBuilder.debug",
-        "title": "التصحيح",
+        "title": "%webPageBuilder.debug%",
         "category": "Web Page Builder",
         "icon": "$(bug)"
       },
       {
         "command": "webPageBuilder.publish",
-        "title": "النشر",
+        "title": "%webPageBuilder.publish%",
         "category": "Web Page Builder",
         "icon": "$(cloud-upload)"
       },
       {
         "command": "webPageBuilder.openSettings",
-        "title": "فتح الإعدادات",
+        "title": "%webPageBuilder.openSettings%",
         "category": "Web Page Builder",
         "icon": "$(settings-gear)"
       },
       {
         "command": "webPageBuilder.updateSidebarLocale",
-        "title": "تحديث ترجمات Sidebar",
+        "title": "%webPageBuilder.updateSidebarLocale%",
         "category": "Web Page Builder"
       },
       {
         "command": "webPageBuilder.help",
-        "title": "المساعدة",
+        "title": "%webPageBuilder.help%",
         "category": "Web Page Builder",
         "icon": "$(question)"
       },
       {
         "command": "webPageBuilder.openWebviews",
-        "title": "صفحة التصميم",
+        "title": "%webPageBuilder.openWebviews%",
         "category": "Web Page Builder",
         "icon": "$(preview)"
       }
@@ -182,7 +182,7 @@
       "activitybar": [
         {
           "id": "webPageBuilder",
-          "title": "Web Page Builder",
+          "title": "%webPageBuilder.title%",
           "icon": "icon.svg"
         }
       ]
@@ -191,7 +191,7 @@
       "webPageBuilder": [
         {
           "id": "webPageBuilder.sidebar",
-          "name": "Web Page Builder",
+          "name": "%webPageBuilder.name%",
           "type": "webview",
           "icon": "icon.svg"
         }

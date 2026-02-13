@@ -373,12 +373,12 @@ async function handleOpenFile(context: vscode.ExtensionContext): Promise<void> {
             if (!isDefaultCode) {
                 // إظهار رسالة تأكيد
                 const choice = await vscode.window.showWarningMessage(
-                    'المحرر يحتوي على كود. هل تريد استبداله بمحتوى الملف؟',
-                    'نعم',
-                    'لا'
+                    t('messages.editorHasCode'),
+                    t('messages.yes'),
+                    t('messages.no')
                 );
                 
-                if (choice !== 'نعم') {
+                if (choice !== t('messages.yes')) {
                     return;
                 }
             }
@@ -395,10 +395,10 @@ async function handleOpenFile(context: vscode.ExtensionContext): Promise<void> {
             // تحديث المعاينة
             codeEventEmitter.emitCodeChange(code);
             
-            vscode.window.showInformationMessage(`تم تحميل الملف: ${fileUri.fsPath}`);
+            vscode.window.showInformationMessage(t('messages.fileLoaded', { path: fileUri.fsPath }));
         }
     } catch (error) {
-        vscode.window.showErrorMessage(`فشل في قراءة الملف: ${error}`);
+        vscode.window.showErrorMessage(t('messages.fileNotFound', { path: String(error) }));
     }
 }
 

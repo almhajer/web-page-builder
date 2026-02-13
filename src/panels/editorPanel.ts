@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import path from 'path';
 import { codeEventEmitter } from '../events/codeEventEmitter';
+import { t } from '../locales/localeService';
 
 /**
  * إعدادات EditorPanel
@@ -439,7 +440,7 @@ function getEditorHtml(): string {
                         if (tagExists) {
                             vscode.postMessage({
                                 type: 'showWarning',
-                                message: 'الوسم <' + tagName + '> موجود مسبقاً في المستند'
+                                message: t('messages.tagAlreadyExists', { tag: tagName })
                             });
                             return;
                         }

@@ -17,16 +17,19 @@
   "categories": {
     "rootElements": "العناصر الجذرية والأساسية",
     "metadata": "بيانات الميتا",
+    "sections": "أقسام المحتوى",
+    "grouping": "تنظيم النصوص",
+    "textLevel": "النصوص السطرية",
     "textContent": "المحتوى النصي",
     "lists": "القوائم",
     "forms": "النماذج",
     "tables": "الجداول",
     "media": "الوسائط",
-    "embedded": "المضمنة",
+    "embedded": "المحتوى المدمج",
     "scripting": "السكربت",
-    "interactive": "التفاعلية",
+    "interactive": "العناصر التفاعلية",
     "demarcating": "التمييز",
-    "editing": "التعديل",
+    "editing": "تعديل النصوص",
     "formsExtra": "نماذج إضافية"
   },
   "tags": {
@@ -76,7 +79,13 @@
     "previewError": "خطأ في إنشاء المعاينة: {error}",
     "openedInBrowser": "تم الفتح في المتصفح",
     "noActiveEditor": "لا يوجد محرر نشط",
-    "notHtmlFile": "الملف الحالي ليس ملف HTML"
+    "notHtmlFile": "الملف الحالي ليس ملف HTML",
+    "tagInserted": "تم إدراج: {tag}",
+    "tagNotSelected": "لم يتم تحديد وسم",
+    "editorNotAvailable": "المحرر غير متاح",
+    "editorHasCode": "المحرر يحتوي على كود. هل تريد استبداله بمحتوى الملف؟",
+    "fileLoaded": "تم تحميل الملف: {path}",
+    "tagAlreadyExists": "الوسم <{tag}> موجود مسبقاً في المستند"
   },
   "commands": {
     "openBuilder": "فتح منشئ صفحات الويب",

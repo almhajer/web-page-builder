@@ -17,6 +17,9 @@
   "categories": {
     "rootElements": "Root and Basic Elements",
     "metadata": "Metadata",
+    "sections": "Content Sections",
+    "grouping": "Text Grouping",
+    "textLevel": "Inline Text",
     "textContent": "Text Content",
     "lists": "Lists",
     "forms": "Forms",
@@ -26,7 +29,7 @@
     "scripting": "Scripting",
     "interactive": "Interactive Elements",
     "demarcating": "Demarcating Edits",
-    "editing": "Editing",
+    "editing": "Text Editing",
     "formsExtra": "Extra Forms"
   },
   "tags": {
@@ -76,7 +79,13 @@
     "previewError": "Error creating preview: {error}",
     "openedInBrowser": "Opened in browser",
     "noActiveEditor": "No active editor",
-    "notHtmlFile": "Current file is not an HTML file"
+    "notHtmlFile": "Current file is not an HTML file",
+    "tagInserted": "Inserted: {tag}",
+    "tagNotSelected": "No tag selected",
+    "editorNotAvailable": "Editor not available",
+    "editorHasCode": "Editor contains code. Do you want to replace it with file content?",
+    "fileLoaded": "File loaded: {path}",
+    "tagAlreadyExists": "Tag <{tag}> already exists in the document"
   },
   "commands": {
     "openBuilder": "Open Web Page Builder",

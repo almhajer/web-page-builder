@@ -280,7 +280,7 @@ npm run test
 | الرابط | الوصف |
 |:------:|:------|
 | [🌐 4Techs.net](https://www.4Techs.net) | الموقع الرسمي |
-| [📦 VS Marketplace](https://marketplace.visualstudio.com/publisher/Arabic-language) | صفحة الناشر |
+| [📦 VS Marketplace](https://marketplace.visualstudio.com/publishers/Arabic-language) | صفحة الناشر |
 
 ### 📦 إضافات أخرى من فريق 4Techs
 

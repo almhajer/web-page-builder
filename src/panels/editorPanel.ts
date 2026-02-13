@@ -286,13 +286,13 @@ async function getEditorHtml(): Promise<string> {
                         const fullText = model.getValue();
                         
                         // تصنيف الوسوم حسب القسم التابع لها
-                        const headElements = ['title', 'base', 'link', 'meta', 'style', 'script'];
+                        const headElements = ['title', 'base', 'link', 'meta', 'style'];
                         const bodyElements = ['p', 'div', 'span', 'img', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
                                               'button', 'input', 'textarea', 'select', 'form', 'label',
                                               'table', 'tr', 'td', 'th', 'ul', 'ol', 'li', 'article',
                                               'section', 'nav', 'aside', 'header', 'footer', 'main',
                                               'figure', 'figcaption', 'video', 'audio', 'canvas', 'iframe',
-                                              'br', 'hr', 'pre', 'code', 'blockquote', 'address'];
+                                              'br', 'hr', 'pre', 'code', 'blockquote', 'address', 'script'];
                         
                         // العناصر التي يجب إدراجها في نهاية body (قبل </body>)
                         const endOfBodyElements = ['script-internal'];
@@ -307,30 +307,6 @@ async function getEditorHtml(): Promise<string> {
                         // استخراج اسم الوسم من النص
                         const tagMatch = text.match(/^\\s*<(\\w+)/);
                         const tagName = tagMatch ? tagMatch[1].toLowerCase() : '';
-                        
-                        // التحقق مما إذا كان المؤشر داخل علامات اقتباس ""
-                        const lineContent = model.getLineContent(position.lineNumber);
-                        const beforeCursorOnLine = lineContent.substring(0, position.column - 1);
-                        
-                        // عد علامات الاقتباس قبل المؤشر
-                        let quoteCount = 0;
-                        let insideQuotes = false;
-                        for (let i = 0; i < beforeCursorOnLine.length; i++) {
-                            if (beforeCursorOnLine[i] === '"') {
-                                quoteCount++;
-                            }
-                        }
-                        // إذا كان عدد علامات الاقتباس فردياً، فالمؤشر داخل ""
-                        insideQuotes = quoteCount % 2 === 1;
-                        
-                        if (insideQuotes) {
-                            // المؤشر داخل علامات اقتباس - لا يمكن إضافة وسم HTML
-                            vscode.postMessage({
-                                type: 'showWarning',
-                                message: 'لا يمكن إضافة وسم HTML داخل قيمة خاصية'
-                            });
-                            return;
-                        }
                         
                         // التحقق مما إذا كان المؤشر داخل iframe
                         // البحث عن أقرب وسم iframe يحتوي على المؤشر
@@ -494,167 +470,18 @@ async function getEditorHtml(): Promise<string> {
                             },
                             text: textToInsert
                         }]);
-                        
-                        // تحديد موضع المؤشر بعد الإدراج
-                        // خريطة لتحديد موضع المؤشر لكل وسم
-                        const cursorPositions = {
-                            // وسوم ذات محتوى نصي - المؤشر بين فتح وإغلاق الوسم
-                            'p': { type: 'content' },
-                            'div': { type: 'content' },
-                            'span': { type: 'content' },
-                            'h1': { type: 'content' },
-                            'h2': { type: 'content' },
-                            'h3': { type: 'content' },
-                            'h4': { type: 'content' },
-                            'h5': { type: 'content' },
-                            'h6': { type: 'content' },
-                            'button': { type: 'content' },
-                            'label': { type: 'content' },
-                            'a': { type: 'content' },
-                            'li': { type: 'content' },
-                            'td': { type: 'content' },
-                            'th': { type: 'content' },
-                            'textarea': { type: 'content' },
-                            'pre': { type: 'content' },
-                            'code': { type: 'content' },
-                            'blockquote': { type: 'content' },
-                            'figcaption': { type: 'content' },
-                            'article': { type: 'content' },
-                            'section': { type: 'content' },
-                            'nav': { type: 'content' },
-                            'aside': { type: 'content' },
-                            'header': { type: 'content' },
-                            'footer': { type: 'content' },
-                            'main': { type: 'content' },
-                            // وسوم تنسيق إضافية
-                            'ins': { type: 'content' },
-                            'del': { type: 'content' },
-                            'mark': { type: 'content' },
-                            'strong': { type: 'content' },
-                            'em': { type: 'content' },
-                            'b': { type: 'content' },
-                            'i': { type: 'content' },
-                            'u': { type: 'content' },
-                            's': { type: 'content' },
-                            'sub': { type: 'content' },
-                            'sup': { type: 'content' },
-                            'small': { type: 'content' },
-                            'big': { type: 'content' },
-                            'abbr': { type: 'content' },
-                            'cite': { type: 'content' },
-                            'dfn': { type: 'content' },
-                            'kbd': { type: 'content' },
-                            'samp': { type: 'content' },
-                            'var': { type: 'content' },
-                            'q': { type: 'content' },
-                            'time': { type: 'content' },
-                            'address': { type: 'content' },
-                            'caption': { type: 'content' },
-                            'tr': { type: 'content' },
-                            'thead': { type: 'content' },
-                            'tbody': { type: 'content' },
-                            'tfoot': { type: 'content' },
-                            'ol': { type: 'content' },
-                            'ul': { type: 'content' },
-                            'dl': { type: 'content' },
-                            'dt': { type: 'content' },
-                            'dd': { type: 'content' },
-                            'figure': { type: 'content' },
-                            'details': { type: 'content' },
-                            'summary': { type: 'content' },
-                            'dialog': { type: 'content' },
-                            'menu': { type: 'content' },
-                            'menuitem': { type: 'content' },
-                            'legend': { type: 'content' },
-                            'optgroup': { type: 'content' },
-                            'option': { type: 'content' },
-                            'noscript': { type: 'content' },
-                            'canvas': { type: 'content' },
-                            'map': { type: 'content' },
-                            'area': { type: 'content' },
-                            'style': { type: 'content' },
-                            'title': { type: 'content' },
-                            'picture': { type: 'content' },
-                            // وسوم ذات خصائص - المؤشر في الخاصية الأولى
-                            'script': { type: 'attribute', attr: 'src' },
-                            'iframe': { type: 'attribute', attr: 'src' },
-                            'video': { type: 'attribute', attr: 'src' },
-                            'audio': { type: 'attribute', attr: 'src' },
-                            'form': { type: 'attribute', attr: 'action' },
-                            'object': { type: 'attribute', attr: 'data' },
-                            // وسوم self-closing - المؤشر بعد الوسم مباشرة
-                            'link': { type: 'after' },
-                            'img': { type: 'after' },
-                            'source': { type: 'after' },
-                            'input': { type: 'after' },
-                            'meta': { type: 'after' },
-                            'base': { type: 'after' },
-                            'embed': { type: 'after' },
-                            'track': { type: 'after' },
-                            'br': { type: 'after' },
-                            'hr': { type: 'after' },
-                            'col': { type: 'after' },
-                            'wbr': { type: 'after' },
-                            // وسوم ذات هيكل معقد - المؤشر داخل خاصية الوسم الداخلي
-                            'picture': { type: 'nestedAttribute', attr: 'src' },
-                            'table': { type: 'after' }
-                        };
-                        
-                        const cursorConfig = cursorPositions[tagName];
-                        if (cursorConfig) {
-                            // حساب موضع النص المدرج
-                            const insertOffset = model.getOffsetAt(insertPosition);
-                            const newTextLength = textToInsert.length;
-                            
-                            if (cursorConfig.type === 'content') {
-                                // المؤشر بين فتح وإغلاق الوسم
-                                // البحث عن موضع إغلاق وسم الفتح
-                                const openTagEnd = textToInsert.indexOf('>');
-                                if (openTagEnd !== -1) {
-                                    const cursorOffset = insertOffset + openTagEnd + 1;
-                                    const newCursorPos = model.getPositionAt(cursorOffset);
-                                    editor.setPosition(newCursorPos);
-                                }
-                            } else if (cursorConfig.type === 'attribute') {
-                                // المؤشر داخل الخاصية الأولى
-                                // البحث عن موضع الخاصية
-                                const attrPattern = new RegExp(cursorConfig.attr + '="');
-                                const attrMatch = textToInsert.match(attrPattern);
-                                if (attrMatch) {
-                                    const attrIndex = textToInsert.indexOf(attrMatch[0]) + attrMatch[0].length;
-                                    const cursorOffset = insertOffset + attrIndex;
-                                    const newCursorPos = model.getPositionAt(cursorOffset);
-                                    editor.setPosition(newCursorPos);
-                                }
-                            } else if (cursorConfig.type === 'after') {
-                                // المؤشر بعد الوسم مباشرة (للوسوم self-closing)
-                                const cursorOffset = insertOffset + textToInsert.length;
-                                const newCursorPos = model.getPositionAt(cursorOffset);
-                                editor.setPosition(newCursorPos);
-                            } else if (cursorConfig.type === 'nestedAttribute') {
-                                // المؤشر داخل خاصية الوسم الداخلي (مثل picture > img src="")
-                                const attrPattern = new RegExp(cursorConfig.attr + '="');
-                                const attrMatch = textToInsert.match(attrPattern);
-                                if (attrMatch) {
-                                    const attrIndex = textToInsert.indexOf(attrMatch[0]) + attrMatch[0].length;
-                                    const cursorOffset = insertOffset + attrIndex;
-                                    const newCursorPos = model.getPositionAt(cursorOffset);
-                                    editor.setPosition(newCursorPos);
-                                }
-                            }
-                        }
-                        
-                        editor.focus();
                     }
                     break;
                 case 'undo':
                     if (editor) {
-                        editor.trigger('keyboard', 'undo', null);
+                        // تراجع عن آخر تعديل
+                        editor.trigger('undo', 'undo', null);
                     }
                     break;
                 case 'redo':
                     if (editor) {
-                        editor.trigger('keyboard', 'redo', null);
+                        // إعادة التعديل الملغي
+                        editor.trigger('redo', 'redo', null);
                     }
                     break;
             }
@@ -663,9 +490,8 @@ async function getEditorHtml(): Promise<string> {
         require.config({ paths: { 'vs': '${monacoPath}' }});
 
         require(['vs/editor/editor.main'], function() {
-            const defaultHtml = '<!DOCTYPE html>\\n<html lang="en" dir="ltr">\\n<head>\\n    <meta charset="UTF-8">\\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\\n    <title>صفحة</title>\\n</head>\\n<body>\\n\\n</body>\\n</html>';
             editor = monaco.editor.create(document.getElementById('container'), {
-                value: defaultHtml,
+                value: \`${EDITOR_CONFIG.DEFAULT_HTML}\`,
                 language: '${EDITOR_CONFIG.EDITOR_OPTIONS.language}',
                 theme: '${EDITOR_CONFIG.EDITOR_OPTIONS.theme}',
                 automaticLayout: ${EDITOR_CONFIG.EDITOR_OPTIONS.automaticLayout},
@@ -683,4 +509,3 @@ async function getEditorHtml(): Promise<string> {
 </body>
 </html>`;
 }
-

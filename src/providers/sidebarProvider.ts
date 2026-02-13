@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { readFile } from 'fs/promises';
 import { EditorPanel } from '../panels/editorPanel';
+import { resetSavedFilePath } from '../commands/index';
 
 /**
  * رسائل Webview
@@ -130,6 +131,8 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
                 vscode.window.showInformationMessage('Opening Web Page Builder...');
                 break;
             case WEBVIEW_MESSAGES.NEW_PROJECT:
+                // إعادة تعيين مسار الملف المحفوظ عند إنشاء مشروع جديد
+                resetSavedFilePath();
                 vscode.window.showInformationMessage('Creating new project...');
                 break;
             case WEBVIEW_MESSAGES.SAVE_AS:

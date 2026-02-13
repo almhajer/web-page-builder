@@ -51,6 +51,11 @@ const MESSAGES = {
 } as const;
 
 /**
+ * مسار الملف المحفوظ حالياً
+ */
+let savedFilePath: vscode.Uri | null = null;
+
+/**
  * تسجيل جميع أوامر الإضافة
  */
 export function registerCommands(context: vscode.ExtensionContext): void {
@@ -181,21 +186,44 @@ async function handleSaveAs(): Promise<void> {
         return;
     }
 
-    // فتح نافذة حفظ باسم
-    const uri = await vscode.window.showSaveDialog({
-        defaultUri: vscode.Uri.file(DEFAULTS.SAVE_FILENAME),
-        filters: {
-            'HTML Files': ['html'],
-            'All Files': ['*']
+    // التحقق من وجود مسار محفوظ مسبقاً
+    if (savedFilePath) {
+        // حفظ مباشر إلى الملف المحفوظ
+        await saveFileWithProgress(savedFilePath, code);
+    } else {
+        // فتح نافذة حفظ باسم
+        const uri = await vscode.window.showSaveDialog({
+            defaultUri: vscode.Uri.file(DEFAULTS.SAVE_FILENAME),
+            filters: {
+                'HTML Files': ['html'],
+                'All Files': ['*']
+            }
+        });
+
+        if (!uri) {
+            return;
         }
-    });
 
-    if (!uri) {
-        return;
+        // تخزين المسار للحفظ المستقبلي
+        savedFilePath = uri;
+        
+        // حفظ الملف مع شريط تقدم
+        await saveFileWithProgress(uri, code);
     }
+}
 
-    // حفظ الملف مع شريط تقدم
-    await saveFileWithProgress(uri, code);
+/**
+ * إعادة تعيين مسار الملف المحفوظ (عند إنشاء مشروع جديد)
+ */
+export function resetSavedFilePath(): void {
+    savedFilePath = null;
+}
+
+/**
+ * الحصول على مسار الملف المحفوظ
+ */
+export function getSavedFilePath(): vscode.Uri | null {
+    return savedFilePath;
 }
 
 /**

@@ -43,6 +43,14 @@ const TAGS_WITH_REQUIRED_ATTRIBUTES: Record<string, string> = {
 };
 
 /**
+ * العناصر الخاصة المخصصة (روابط CSS و JavaScript)
+ */
+const SPECIAL_ELEMENTS: Record<string, string> = {
+    'link-stylesheet': '<link rel="stylesheet" href="style.css">',
+    'script-src': '<script type="text/javascript" src=""></script>',
+};
+
+/**
  * الوسوم التي تتطلب عنصر ابن واحد على الأقل مع المحتوى الافتراضي
  */
 const TAGS_WITH_REQUIRED_CHILDREN: Record<string, { childTag: string; content: string }> = {
@@ -144,7 +152,13 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
      * @returns كود الوسم
      */
     private generateTagCode(tag: string): string {
-        // التحقق أولاً مما إذا كان الوسم له خصائص إلزامية
+        // التحقق أولاً مما إذا كان عنصر خاص مخصص
+        const specialElement = SPECIAL_ELEMENTS[tag];
+        if (specialElement) {
+            return specialElement;
+        }
+        
+        // التحقق مما إذا كان الوسم له خصائص إلزامية
         const requiredAttributes = TAGS_WITH_REQUIRED_ATTRIBUTES[tag];
         if (requiredAttributes) {
             return requiredAttributes;

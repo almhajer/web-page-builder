@@ -499,10 +499,6 @@ function getEditorHtml(): string {
                     
                     // معالجة وسم script (داخلي أو خارجي) حسب موقع المؤشر
                     if (isInternalScript || isExternalScript) {
-                        // حساب طول وسم الفتح للمؤشر
-                        const openTagMatch = text.match(/^<([a-zA-Z][a-zA-Z0-9]*)([^>]*)>/);
-                        const openTagLength = openTagMatch ? ('<' + openTagMatch[1] + openTagMatch[2] + '>').length : 0;
-                        
                         if (isCursorInHead && headEndMatch) {
                             // إذا كان المؤشر في head، أضف السكربت في نهاية head
                             const headEndIndex = headEndMatch.index;
@@ -520,7 +516,7 @@ function getEditorHtml(): string {
                             if (cursorPositionAfterInsert) {
                                 cursorPositionAfterInsert = {
                                     lineNumber: insertPosition.lineNumber,
-                                    column: insertPosition.column + indent.length + openTagLength
+                                    column: insertPosition.column + indent.length + cursorOffset
                                 };
                             }
                         } else if (isCursorInBody && bodyStartMatch) {
@@ -540,7 +536,7 @@ function getEditorHtml(): string {
                             if (cursorPositionAfterInsert) {
                                 cursorPositionAfterInsert = {
                                     lineNumber: insertPosition.lineNumber,
-                                    column: insertPosition.column + indent.length + openTagLength
+                                    column: insertPosition.column + indent.length + cursorOffset
                                 };
                             }
                         } else if (bodyStartMatch) {
@@ -560,7 +556,7 @@ function getEditorHtml(): string {
                             if (cursorPositionAfterInsert) {
                                 cursorPositionAfterInsert = {
                                     lineNumber: insertPosition.lineNumber,
-                                    column: insertPosition.column + indent.length + openTagLength
+                                    column: insertPosition.column + indent.length + cursorOffset
                                 };
                             }
                         }

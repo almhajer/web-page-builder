@@ -43,6 +43,12 @@
       },
     
       {
+        "command": "webPageBuilder.openFile",
+        "title": "فتح ملف",
+        "category": "Web Page Builder",
+        "icon": "$(folder-opened)"
+      },
+      {
         "command": "webPageBuilder.saveAs",
         "title": "حفظ باسم",
         "category": "Web Page Builder",
@@ -184,34 +190,39 @@
           "group": "navigation@1"
         },
         {
-          "command": "webPageBuilder.viewSource",
+          "command": "webPageBuilder.openFile",
           "when": "view == webPageBuilder.sidebar",
           "group": "navigation@2"
         },
         {
-          "command": "webPageBuilder.saveAs",
+          "command": "webPageBuilder.viewSource",
           "when": "view == webPageBuilder.sidebar",
           "group": "navigation@3"
         },
         {
-          "command": "webPageBuilder.undo",
+          "command": "webPageBuilder.saveAs",
           "when": "view == webPageBuilder.sidebar",
           "group": "navigation@4"
         },
         {
-          "command": "webPageBuilder.redo",
+          "command": "webPageBuilder.undo",
           "when": "view == webPageBuilder.sidebar",
           "group": "navigation@5"
+        },
+        {
+          "command": "webPageBuilder.redo",
+          "when": "view == webPageBuilder.sidebar",
+          "group": "navigation@6"
         },
         {
           "command": "webPageBuilder.openBuild",
           "when": "view == webPageBuilder.sidebar",
-          "group": "navigation@5"
+          "group": "navigation@7"
         },
         {
           "command": "webPageBuilder.settings",
           "when": "view == webPageBuilder.sidebar",
-          "group": "navigation@6"
+          "group": "navigation@8"
         }
       ],
       "editor/title": [

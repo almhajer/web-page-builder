@@ -11,6 +11,7 @@ const COMMANDS = {
     UNDO: 'webPageBuilder.undo',
     REDO: 'webPageBuilder.redo',
     VIEW_SOURCE: 'webPageBuilder.viewSource',
+    OPEN_FILE: 'webPageBuilder.openFile',
     SAVE_AS: 'webPageBuilder.saveAs',
     OPEN_BUILD: 'webPageBuilder.openBuild',
     SETTINGS: 'webPageBuilder.settings',
@@ -105,6 +106,10 @@ export function registerCommands(context: vscode.ExtensionContext): void {
 
         vscode.commands.registerCommand(COMMANDS.SAVE_AS, async () => {
             await handleSaveAs();
+        }),
+
+        vscode.commands.registerCommand(COMMANDS.OPEN_FILE, async () => {
+            await handleOpenFile(context);
         }),
 
         vscode.commands.registerCommand(COMMANDS.OPEN_BUILD, () => {
@@ -294,4 +299,90 @@ async function saveFileWithProgress(uri: vscode.Uri, code: string): Promise<void
     });
 
     vscode.window.showInformationMessage(MESSAGES.SAVED(uri.fsPath));
+}
+
+/**
+ * معالجة أمر فتح ملف
+ */
+async function handleOpenFile(context: vscode.ExtensionContext): Promise<void> {
+    // فتح نافذة اختيار الملف
+    const uris = await vscode.window.showOpenDialog({
+        canSelectMany: false,
+        filters: {
+            'HTML Files': ['html', 'xhtml'],
+            'All Files': ['*']
+        },
+        title: 'اختر ملف HTML'
+    });
+
+    if (!uris || uris.length === 0) {
+        return;
+    }
+
+    const fileUri = uris[0];
+
+    try {
+        // قراءة محتوى الملف
+        const fileContent = await vscode.workspace.fs.readFile(fileUri);
+        const code = Buffer.from(fileContent).toString('utf8');
+
+        // الحصول على EditorPanel
+        let editorPanel = EditorPanel.getInstance();
+        
+        // التحقق مما إذا كان المحرر يحتوي على كود مختلف عن الافتراضي
+        const defaultHtml = `<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحة</title>
+</head>
+<body>
+
+</body>
+</html>`;
+
+        // إذا كان المحرر مفتوحاً، نحتاج للتحقق من الكود الحالي
+        if (editorPanel) {
+            // طلب الكود الحالي من المحرر
+            let currentCode = '';
+            try {
+                currentCode = await editorPanel.requestCodeWithRetry(1, 1);
+            } catch (e) {
+                // تجاهل الخطأ
+            }
+
+            // مقارنة الكود الحالي مع الافتراضي
+            const isDefaultCode = currentCode.trim() === defaultHtml.trim() || currentCode.trim() === '';
+            
+            if (!isDefaultCode) {
+                // إظهار رسالة تأكيد
+                const choice = await vscode.window.showWarningMessage(
+                    'المحرر يحتوي على كود. هل تريد استبداله بمحتوى الملف؟',
+                    'نعم',
+                    'لا'
+                );
+                
+                if (choice !== 'نعم') {
+                    return;
+                }
+            }
+        } else {
+            // إنشاء المحرر إذا كان مغلقاً
+            editorPanel = await EditorPanel.create(context);
+        }
+
+        if (editorPanel) {
+            // تحديث المحرر بالكود الجديد
+            editorPanel.updateValue(code);
+            editorPanel.reveal(vscode.ViewColumn.One);
+            
+            // تحديث المعاينة
+            codeEventEmitter.emitCodeChange(code);
+            
+            vscode.window.showInformationMessage(`تم تحميل الملف: ${fileUri.fsPath}`);
+        }
+    } catch (error) {
+        vscode.window.showErrorMessage(`فشل في قراءة الملف: ${error}`);
+    }
 }

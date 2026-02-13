@@ -36,7 +36,8 @@ const WEBVIEW_MESSAGES = {
     UPDATE_EDITOR_VALUE: 'updateEditorValue',
     REQUEST_CURRENT_CODE: 'requestCurrentCode',
     REQUEST_CODE_FROM_WEBVIEW: 'requestCurrentCodeFromWebview',
-    UPDATE_CODE: 'updateCode'
+    UPDATE_CODE: 'updateCode',
+    INSERT_TEXT_AT_CURSOR: 'insertTextAtCursor'
 } as const;
 
 /**
@@ -135,6 +136,16 @@ export class EditorPanel {
         this.panel.webview.postMessage({
             type: WEBVIEW_MESSAGES.UPDATE_EDITOR_VALUE,
             code: code
+        });
+    }
+
+    /**
+     * إدراج نص في مكان المؤشر
+     */
+    public insertTextAtCursor(text: string): void {
+        this.panel.webview.postMessage({
+            type: WEBVIEW_MESSAGES.INSERT_TEXT_AT_CURSOR,
+            text: text
         });
     }
 
@@ -239,6 +250,21 @@ async function getEditorHtml(): Promise<string> {
                     vscode.postMessage({
                         type: '${WEBVIEW_MESSAGES.REQUEST_CODE_FROM_WEBVIEW}'
                     });
+                    break;
+                case '${WEBVIEW_MESSAGES.INSERT_TEXT_AT_CURSOR}':
+                    if (editor) {
+                        const position = editor.getPosition();
+                        const text = message.text || '';
+                        editor.executeEdits('', [{
+                            range: {
+                                startLineNumber: position.lineNumber,
+                                startColumn: position.column,
+                                endLineNumber: position.lineNumber,
+                                endColumn: position.column
+                            },
+                            text: text
+                        }]);
+                    }
                     break;
             }
         });

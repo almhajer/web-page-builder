@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { readFile } from 'fs/promises';
+import { EditorPanel } from '../panels/editorPanel';
 
 /**
  * رسائل Webview
@@ -54,9 +55,30 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
                 vscode.window.showInformationMessage('Saving as...');
                 break;
             case WEBVIEW_MESSAGES.INSERT_TAG:
-                vscode.window.showInformationMessage(`<${data.tag}>`);
+                // إدراج كود الوسم في مكان المؤشر في المحرر
+                const editorPanel = EditorPanel.getInstance();
+                if (editorPanel) {
+                    const tag = data.tag;
+                    const tagCode = this.generateTagCode(tag);
+                    editorPanel.insertTextAtCursor(tagCode);
+                }
                 break;
         }
+    }
+
+    /**
+     * توليد كود الوسم
+     */
+    private generateTagCode(tag: string): string {
+        // قائمة الوسوم التي تحتاج إلى محتوى افتراضي
+        const tagsWithContent = ['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'button', 'a', 'img', 'input', 'textarea'];
+        
+        if (tagsWithContent.includes(tag)) {
+            return `<${tag}></${tag}>`;
+        }
+        
+        // الوسوم الفارغة
+        return `<${tag}>`;
     }
 
     /**

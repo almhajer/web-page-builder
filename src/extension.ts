@@ -14,6 +14,12 @@ export function activate(context: vscode.ExtensionContext): void {
     // فتح Webviews مباشرة عند تفعيل الإضافة
     WebPageBuilderPanel.createOrShow(context.extensionUri);
 
+    // جعل EditorPanel هو النشط بعد إنشاء جميع اللوحات
+    const editorPanel = EditorPanel.getInstance();
+    if (editorPanel) {
+        editorPanel.reveal(vscode.ViewColumn.One);
+    }
+
     // تسجيل جميع الأوامر
     registerCommands(context);
 

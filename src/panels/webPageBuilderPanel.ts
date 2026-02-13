@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { readFile } from 'fs/promises';
 import { EditorPanel } from './editorPanel';
+import { codeEventEmitter } from '../events/codeEventEmitter';
 
 /**
  * إعدادات WebPageBuilderPanel
@@ -34,6 +35,13 @@ export class WebPageBuilderPanel {
 
     private readonly _panel: vscode.WebviewPanel;
     private _disposables: vscode.Disposable[] = [];
+
+    /**
+     * الحصول على المثيل الحالي من WebPageBuilderPanel
+     */
+    public static getInstance(): WebPageBuilderPanel | undefined {
+        return WebPageBuilderPanel.currentPanel;
+    }
 
     public static createOrShow(extensionUri: vscode.Uri): void {
         const column = vscode.window.activeTextEditor
@@ -91,6 +99,13 @@ export class WebPageBuilderPanel {
             this.handleMessage.bind(this),
             null,
             this._disposables
+        );
+
+        // الاستماع إلى أحداث تغيير الكود من EditorPanel وتحديث المعاينة
+        this._disposables.push(
+            codeEventEmitter.onCodeChange((code: string) => {
+                this.updateCode(code);
+            })
         );
     }
 

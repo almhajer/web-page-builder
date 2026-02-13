@@ -290,6 +290,30 @@ async function getEditorHtml(): Promise<string> {
                         const tagMatch = text.match(/^\\s*<(\\w+)/);
                         const tagName = tagMatch ? tagMatch[1].toLowerCase() : '';
                         
+                        // التحقق مما إذا كان المؤشر داخل علامات اقتباس ""
+                        const lineContent = model.getLineContent(position.lineNumber);
+                        const beforeCursorOnLine = lineContent.substring(0, position.column - 1);
+                        
+                        // عد علامات الاقتباس قبل المؤشر
+                        let quoteCount = 0;
+                        let insideQuotes = false;
+                        for (let i = 0; i < beforeCursorOnLine.length; i++) {
+                            if (beforeCursorOnLine[i] === '"') {
+                                quoteCount++;
+                            }
+                        }
+                        // إذا كان عدد علامات الاقتباس فردياً، فالمؤشر داخل ""
+                        insideQuotes = quoteCount % 2 === 1;
+                        
+                        if (insideQuotes) {
+                            // المؤشر داخل علامات اقتباس - لا يمكن إضافة وسم HTML
+                            vscode.postMessage({
+                                type: 'showWarning',
+                                message: 'لا يمكن إضافة وسم HTML داخل قيمة خاصية'
+                            });
+                            return;
+                        }
+                        
                         // التحقق مما إذا كان المؤشر داخل iframe
                         // البحث عن أقرب وسم iframe يحتوي على المؤشر
                         const cursorAbsolutePos = model.getOffsetAt(position);
@@ -552,7 +576,10 @@ async function getEditorHtml(): Promise<string> {
                             'br': { type: 'after' },
                             'hr': { type: 'after' },
                             'col': { type: 'after' },
-                            'wbr': { type: 'after' }
+                            'wbr': { type: 'after' },
+                            // وسوم ذات هيكل معقد - المؤشر داخل خاصية الوسم الداخلي
+                            'picture': { type: 'nestedAttribute', attr: 'src' },
+                            'table': { type: 'after' }
                         };
                         
                         const cursorConfig = cursorPositions[tagName];
@@ -586,6 +613,16 @@ async function getEditorHtml(): Promise<string> {
                                 const cursorOffset = insertOffset + textToInsert.length;
                                 const newCursorPos = model.getPositionAt(cursorOffset);
                                 editor.setPosition(newCursorPos);
+                            } else if (cursorConfig.type === 'nestedAttribute') {
+                                // المؤشر داخل خاصية الوسم الداخلي (مثل picture > img src="")
+                                const attrPattern = new RegExp(cursorConfig.attr + '="');
+                                const attrMatch = textToInsert.match(attrPattern);
+                                if (attrMatch) {
+                                    const attrIndex = textToInsert.indexOf(attrMatch[0]) + attrMatch[0].length;
+                                    const cursorOffset = insertOffset + attrIndex;
+                                    const newCursorPos = model.getPositionAt(cursorOffset);
+                                    editor.setPosition(newCursorPos);
+                                }
                             }
                         }
                         

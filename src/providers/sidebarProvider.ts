@@ -65,7 +65,6 @@ const TAGS_WITH_REQUIRED_CHILDREN: Record<string, { childTag: string; content: s
     'tfoot': { childTag: 'tr', content: '' },
     'dl': { childTag: 'dt', content: 'مصطلح' },
     'figure': { childTag: 'figcaption', content: 'وصف الصورة' },
-    'picture': { childTag: 'img', content: '' },
     'video': { childTag: 'source', content: '' },
     'audio': { childTag: 'source', content: '' },
     'nav': { childTag: 'a', content: 'رابط' },
@@ -79,17 +78,18 @@ const TAGS_WITH_REQUIRED_CHILDREN: Record<string, { childTag: string; content: s
  * الوسوم التي تتطلب هيكل معقد (محتوى مخصص)
  */
 const TAGS_WITH_COMPLEX_STRUCTURE: Record<string, string> = {
+    'picture': `<picture>
+    <img src=""/>
+</picture>`,
     'table': `<table>
     <thead>
         <tr>
             <th>عنوان 1</th>
-            <th>عنوان 2</th>
         </tr>
     </thead>
     <tbody>
         <tr>
             <td>خلية 1</td>
-            <td>خلية 2</td>
         </tr>
     </tbody>
 </table>`,
@@ -100,8 +100,16 @@ const TAGS_WITH_COMPLEX_STRUCTURE: Record<string, string> = {
  */
 export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider {
     private _view?: vscode.WebviewView;
+    private _context?: vscode.ExtensionContext;
 
     constructor(private readonly _extensionUri: vscode.Uri) {}
+    
+    /**
+     * تعيين سياق الإضافة
+     */
+    public setContext(context: vscode.ExtensionContext): void {
+        this._context = context;
+    }
 
     public async resolveWebviewView(
         webviewView: vscode.WebviewView,
@@ -125,7 +133,7 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
     /**
      * معالج الرسائل من Webview
      */
-    private handleMessage(data: any): void {
+    private async handleMessage(data: any): Promise<void> {
         switch (data.type) {
             case WEBVIEW_MESSAGES.OPEN_BUILDER:
                 vscode.window.showInformationMessage('Opening Web Page Builder...');
@@ -140,10 +148,16 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
                 break;
             case WEBVIEW_MESSAGES.INSERT_TAG:
                 // إدراج كود الوسم في مكان المؤشر في المحرر
-                const editorPanel = EditorPanel.getInstance();
+                let editorPanel = EditorPanel.getInstance();
+                if (!editorPanel && this._context) {
+                    // إعادة فتح المحرر إذا كان مغلقاً
+                    await EditorPanel.create(this._context);
+                    editorPanel = EditorPanel.getInstance();
+                }
                 if (editorPanel) {
                     const tag = data.tag;
                     const tagCode = this.generateTagCode(tag);
+                    editorPanel.reveal(vscode.ViewColumn.One);
                     editorPanel.insertTextAtCursor(tagCode);
                 }
                 break;

@@ -28,6 +28,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     // تسجيل عرض السايد بار
     const sidebarProvider = new WebPageBuilderSidebarProvider(context.extensionUri);
+    sidebarProvider.setContext(context);
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider('webPageBuilder.sidebar', sidebarProvider)
     );

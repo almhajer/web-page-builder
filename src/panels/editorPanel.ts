@@ -49,6 +49,16 @@ export class EditorPanel {
     }
 
     /**
+     * تنظيف طلب الكود المعلق
+     */
+    private clearPendingCodeRequest(): void {
+        if (this.pendingCodeRequest) {
+            this.pendingCodeRequest.resolver('');
+            this.pendingCodeRequest = null;
+        }
+    }
+
+    /**
      * الحصول على المثيل الحالي
      */
     public static getInstance(): EditorPanel | null {
@@ -456,17 +466,13 @@ function getEditorHtml(): string {
                     const selfClosingTagMatch = text.match(/^<([a-zA-Z][a-zA-Z0-9]*)([^>]*)\\/>$/);
                     
                     let cursorPositionAfterInsert = null;
-                    let openTagLength = 0;
+                    let cursorOffset = 0; // إزاحة المؤشر داخل textToInsert
                     
                     if (normalTagMatch) {
                         // وسم عادي مع أو بدون سمات (مثل <a href=""></a> أو <h5></h5>)
                         // المؤشر يجب أن يكون بين > و <
                         const fullOpenTag = '<' + normalTagMatch[1] + normalTagMatch[2] + '>';
-                        openTagLength = fullOpenTag.length;
-                        cursorPositionAfterInsert = {
-                            lineNumber: insertPosition.lineNumber,
-                            column: insertPosition.column + openTagLength
-                        };
+                        cursorOffset = fullOpenTag.length;
                     } else if (selfClosingTagMatch) {
                         // وسم أحادي مع سمات (مثل <img src="">)
                         // المؤشر يجب أن يكون داخل علامات الاقتباس للسمة الأولى الفارغة
@@ -479,19 +485,11 @@ function getEditorHtml(): string {
                             const attrNameLength = emptyAttrMatch[1].length;
                             // البحث عن موقع علامة الاقتباس المزدوجة الأولى
                             const quoteIndex = text.indexOf('""', beforeAttrIndex);
-                            openTagLength = quoteIndex + 1; // +1 للدخول داخل علامات الاقتباس
-                            cursorPositionAfterInsert = {
-                                lineNumber: insertPosition.lineNumber,
-                                column: insertPosition.column + openTagLength
-                            };
+                            cursorOffset = quoteIndex + 1; // +1 للدخول داخل علامات الاقتباس
                         } else {
                             // إذا لم تكن هناك سمة فارغة، ضع المؤشر بعد وسم الفتح
                             const fullTag = '<' + selfClosingTagMatch[1] + selfClosingTagMatch[2] + '/>';
-                            openTagLength = fullTag.length;
-                            cursorPositionAfterInsert = {
-                                lineNumber: insertPosition.lineNumber,
-                                column: insertPosition.column + openTagLength
-                            };
+                            cursorOffset = fullTag.length;
                         }
                     }
                     
@@ -575,7 +573,7 @@ function getEditorHtml(): string {
                         if (cursorPositionAfterInsert) {
                             cursorPositionAfterInsert = {
                                 lineNumber: insertPosition.lineNumber,
-                                column: insertPosition.column + indent.length + openTagLength
+                                column: insertPosition.column + indent.length + cursorOffset
                             };
                         }
                     } else if (isBodyElement && bodyStartMatch) {
@@ -601,7 +599,7 @@ function getEditorHtml(): string {
                                 if (cursorPositionAfterInsert) {
                                     cursorPositionAfterInsert = {
                                         lineNumber: insertPosition.lineNumber + 1,
-                                        column: currentLineWhitespace.length + openTagLength
+                                        column: currentLineWhitespace.length + cursorOffset
                                     };
                                 }
                             } else if (lineContent.trim() === '') {
@@ -610,7 +608,7 @@ function getEditorHtml(): string {
                                 if (cursorPositionAfterInsert) {
                                     cursorPositionAfterInsert = {
                                         lineNumber: insertPosition.lineNumber,
-                                        column: openTagLength
+                                        column: cursorOffset
                                     };
                                 }
                             }
@@ -631,7 +629,7 @@ function getEditorHtml(): string {
                                 if (cursorPositionAfterInsert) {
                                     cursorPositionAfterInsert = {
                                         lineNumber: insertPosition.lineNumber,
-                                        column: insertPosition.column + indent.length + openTagLength
+                                        column: insertPosition.column + indent.length + cursorOffset
                                     };
                                 }
                             } else {
@@ -644,7 +642,7 @@ function getEditorHtml(): string {
                                 if (cursorPositionAfterInsert) {
                                     cursorPositionAfterInsert = {
                                         lineNumber: insertPosition.lineNumber,
-                                        column: insertPosition.column + 1 + openTagLength
+                                        column: insertPosition.column + 1 + cursorOffset
                                     };
                                 }
                             }
@@ -659,7 +657,7 @@ function getEditorHtml(): string {
                             if (cursorPositionAfterInsert) {
                                 cursorPositionAfterInsert = {
                                     lineNumber: insertPosition.lineNumber + 1,
-                                    column: currentLineWhitespace.length + openTagLength
+                                    column: currentLineWhitespace.length + cursorOffset
                                 };
                             }
                         } else {
@@ -668,7 +666,7 @@ function getEditorHtml(): string {
                             if (cursorPositionAfterInsert) {
                                 cursorPositionAfterInsert = {
                                     lineNumber: insertPosition.lineNumber,
-                                    column: openTagLength
+                                    column: cursorOffset
                                 };
                             }
                         }

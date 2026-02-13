@@ -138,7 +138,7 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
     /**
      * معالج الرسائل من Webview
      */
-    private async handleMessage(data: any): Promise<void> {
+    private async handleMessage(data: { type: string; tag?: string; language?: LocaleKey }): Promise<void> {
         console.log('Sidebar received message:', data);
         
         switch (data.type) {
@@ -168,6 +168,10 @@ export class WebPageBuilderSidebarProvider implements vscode.WebviewViewProvider
                 
                 if (editorPanel) {
                     const tag = data.tag;
+                    if (!tag) {
+                        vscode.window.showErrorMessage('لم يتم تحديد وسم');
+                        return;
+                    }
                     const tagCode = this.generateTagCode(tag);
                     console.log('Generated tag code:', tagCode);
                     editorPanel.reveal(vscode.ViewColumn.One);

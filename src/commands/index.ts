@@ -491,10 +491,41 @@ async function handleOpenBrowser(context: vscode.ExtensionContext): Promise<void
         return;
     }
 
-    // فتح المحتوى في المتصفح
-    const success = await openHtmlContentInBrowser(code, context);
-    if (success) {
-        vscode.window.showInformationMessage(t('messages.openedInBrowser'));
+    // التحقق من وجود مسار محفوظ مسبقاً
+    if (savedFilePath) {
+        // حفظ مباشر إلى الملف المحفوظ
+        await saveFileWithProgress(savedFilePath, code);
+        
+        // فتح الملف في المتصفح
+        const success = await openHtmlInBrowser(savedFilePath);
+        if (success) {
+            vscode.window.showInformationMessage(t('messages.openedInBrowser'));
+        }
+    } else {
+        // فتح نافذة حفظ باسم
+        const uri = await vscode.window.showSaveDialog({
+            defaultUri: vscode.Uri.file(DEFAULTS.SAVE_FILENAME),
+            filters: {
+                'HTML Files': ['html'],
+                'All Files': ['*']
+            }
+        });
+
+        if (!uri) {
+            return;
+        }
+
+        // تخزين المسار للحفظ المستقبلي
+        savedFilePath = uri;
+        
+        // حفظ الملف مع شريط تقدم
+        await saveFileWithProgress(uri, code);
+        
+        // فتح الملف في المتصفح
+        const success = await openHtmlInBrowser(uri);
+        if (success) {
+            vscode.window.showInformationMessage(t('messages.openedInBrowser'));
+        }
     }
 }
 

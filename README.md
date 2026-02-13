@@ -8,7 +8,7 @@
 
 ### إضافة قوية لـ Visual Studio Code لإنشاء وتحرير صفحات HTML باللغة العربية
 
-![Web Page Builder Banner](icon.png)
+![Web Page Builder Banner](source/icon.png)
 
 ---
 

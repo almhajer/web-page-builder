@@ -4,7 +4,7 @@
   "description": "%description%",
   "version": "0.0.1",
    "publisher": "Arabic-language",
-  "icon": "icon.png",
+  "icon": "source/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/almhajer/web-page-builder.git"
@@ -183,7 +183,7 @@
         {
           "id": "webPageBuilder",
           "title": "%webPageBuilder.title%",
-          "icon": "icon.svg"
+          "icon": "source/icon.svg"
         }
       ]
     },
@@ -193,7 +193,7 @@
           "id": "webPageBuilder.sidebar",
           "name": "%webPageBuilder.name%",
           "type": "webview",
-          "icon": "icon.svg"
+          "icon": "source/icon.svg"
         }
       ]
     },

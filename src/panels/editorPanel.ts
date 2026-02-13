@@ -266,11 +266,8 @@ async function getEditorHtml(): Promise<string> {
                         // تحديد النص المراد إدراجه
                         let textToInsert = text;
                         
-                        // التحقق مما إذا كان المؤشر في المنتصف أم لا
-                        const isMiddleOfLine = position.column > 1 && position.column < lineContent.length;
-                        
-                        if (isMiddleOfLine && !isInsideTag) {
-                            // إذا كان المؤشر في المنتصف وليس داخل وسم، أضف سطر جديد
+                        // التحقق مما إذا كان المؤشر خارج وسم يحتوي له
+                        if (!isInsideTag && lineContent.trim() !== '') {
                             textToInsert = '\\n' + text;
                         }
                         

@@ -261,13 +261,16 @@ async function getEditorHtml(): Promise<string> {
                         
                         // التحقق مما إذا كان المؤشر داخل وسم
                         const isInsideTag = lineContent.substring(0, position.column - 1).includes('<') && 
-                                          !lineContent.substring(0, position.column - 1).includes('>');
+                                              !lineContent.substring(0, position.column - 1).includes('>');
                         
                         // تحديد النص المراد إدراجه
                         let textToInsert = text;
                         
-                        // إذا كان المؤشر خارج وسم يحتوي له، أضف سطر جديد
-                        if (!isInsideTag && lineContent.trim() !== '') {
+                        // التحقق مما إذا كان المؤشر في المنتصف أم لا
+                        const isMiddleOfLine = position.column > 1 && position.column < lineContent.length;
+                        
+                        if (isMiddleOfLine && !isInsideTag) {
+                            // إذا كان المؤشر في المنتصف وليس داخل وسم، أضف سطر جديد
                             textToInsert = '\\n' + text;
                         }
                         

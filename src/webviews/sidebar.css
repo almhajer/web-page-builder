@@ -1,0 +1,455 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #1e1e1e;
+    color: #cccccc;
+    padding: 4px;
+    overflow-x: hidden;
+}
+
+.category {
+    margin-bottom: 16px;
+}
+
+.category-title {
+    font-size: 12px;
+    font-weight: bold;
+    color: #888888;
+    margin-bottom: 8px;
+    padding: 4px 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+}
+
+.separator {
+    height: 1px;
+    background-color: #3d3d3d;
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.separator:hover {
+    background-color: #4d4d4d;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    animation: flashLine 0.5s ease;
+}
+
+@keyframes flashLine {
+    0%, 100% { background-color: #4d4d4d; }
+    50% { background-color: #888888; }
+}
+
+.separator-text {
+    position: absolute;
+    background-color: #1e1e1e;
+    padding: 0 8px;
+    color: #888888;
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+.separator-text:hover {
+    color: #ffffff;
+    background-color: rgba(45, 45, 45, 0.8);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 
+                0 0 15px rgba(0, 198, 255, 0.5), 
+                0 0 0 2px rgba(255, 255, 255, 0.1);
+    filter: brightness(1.2);
+    transform: scale(1.05);
+}
+
+.separator:hover .separator-text {
+    background-color: rgba(45, 45, 45, 0.8);
+    backdrop-filter: blur(8px);
+    color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    animation: flashText 0.5s ease;
+}
+
+@keyframes flashText {
+    0%, 100% { color: #ffffff; }
+    50% { color: #cccccc; }
+}
+
+.separator.collapsed .separator-text {
+    color: #ff6b6b;
+}
+
+.separator.collapsed:hover .separator-text {
+    color: #ff8787;
+    animation: flashTextRed 0.5s ease;
+}
+
+@keyframes flashTextRed {
+    0%, 100% { color: #ff8787; }
+    50% { color: #ffb3b3; }
+}
+
+.separator-icon {
+    font-size: 10px;
+    transition: transform 0.2s ease;
+}
+
+.separator.collapsed .separator-icon {
+    transform: rotate(-90deg);
+}
+
+.category {
+    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    max-height: 1000px;
+    position: relative;
+}
+
+.category.collapsed {
+    max-height: 0;
+    opacity: 0;
+}
+
+.category.collapsed::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #1e1e1e;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.category:not(.collapsed)::before {
+    opacity: 0;
+}
+
+.section {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    justify-items: center;
+    max-width: 320px;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.category.collapsed .section {
+    transform: translateY(-20px);
+    opacity: 0;
+}
+
+.category:not(.collapsed) .section {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background-color: #2d2d2d;
+    border: 1px solid #3d3d3d;
+    border-radius: 12px;
+    color: #cccccc;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.icon-button:hover {
+    background-color: #3d3d3d;
+    color: #ffffff;
+    transform: scale(1.05);
+    animation: flashButton 0.5s ease;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 
+                0 0 15px rgba(0, 198, 255, 0.5), 
+                0 0 0 2px rgba(255, 255, 255, 0.1);
+    filter: brightness(1.2);
+}
+
+@keyframes flashButton {
+    0%, 100% { background-color: #3d3d3d; }
+    50% { background-color: #7d7d7d; }
+}
+
+/* Tooltip منفصل مع position: fixed */
+.custom-tooltip {
+    position: fixed;
+    /* Glassmorphism: خلفية زجاجية شفافة */
+    background: rgba(102, 126, 234, 0.15);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    
+    /* Continuous Neon Glow Border - توهج نيون مستمر */
+    border: 2px solid transparent;
+    border-radius: 25px; /* Highly Rounded Corners - Capsule-like Rectangle */
+    
+    /* Continuous Neon Glow - هالة ضوئية مستمرة ناعمة جداً */
+    box-shadow:
+        /* الطبقة الأساسية للظل */
+        0 4px 20px rgba(0, 0, 0, 0.3),
+        /* Specular Highlight: لمعة الزجاج الواقعية */
+        inset 0 1px 2px rgba(255, 255, 255, 0.3),
+        inset 0 -1px 2px rgba(255, 255, 255, 0.2),
+        /* Continuous Neon Glow Layers - طبقات التوهج النيون الناعمة جداً */
+        0 0 4px rgba(0, 198, 255, 0.25),     /* الطبقة الأولى - توهج ناعم جداً */
+        0 0 8px rgba(0, 198, 255, 0.2),      /* الطبقة الثانية - توهج ناعم جداً */
+        0 0 12px rgba(102, 126, 234, 0.15),    /* الطبقة الثالثة - توهج ناعم جداً */
+        0 0 16px rgba(118, 75, 162, 0.1),     /* الطبقة الرابعة - توهج ناعم جداً */
+        0 0 20px rgba(240, 147, 251, 0.08),    /* الطبقة الخامسة - توهج ناعم جداً */
+        /* Exact Perimeter Border - حدود ناعمة جداً تتبع شكل الـ Tooltip */
+        0 0 0 1px rgba(0, 198, 255, 0.2),
+        0 0 0 2px rgba(102, 126, 234, 0.15),
+        0 0 0 3px rgba(118, 75, 162, 0.1);
+    
+    color: #ffffff;
+    padding: 10px 20px; /* زيادة الحشوة للحصول على شكل كبسولة أفضل */
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.4s ease,
+                filter 0.4s ease;
+    z-index: 999999 !important;
+    pointer-events: none;
+    transform: translate(-50%, 20px) scale(0.7);
+    overflow: hidden;
+}
+
+.custom-tooltip.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -40px) scale(1.05);
+    
+    /* تأثيرات إضافية عند الظهور - توهج نيون ناعم جداً */
+    box-shadow:
+        /* الطبقة الأساسية للظل */
+        0 8px 30px rgba(0, 0, 0, 0.5),
+        /* Specular Highlight: لمعة الزجاج الواقعية */
+        inset 0 1px 2px rgba(255, 255, 255, 0.4),
+        inset 0 -1px 2px rgba(255, 255, 255, 0.3),
+        /* Continuous Neon Glow Layers - طبقات التوهج النيون الناعمة جداً */
+        0 0 5px rgba(0, 198, 255, 0.4),     /* الطبقة الأولى - توهج ناعم جداً */
+        0 0 10px rgba(0, 198, 255, 0.35),     /* الطبقة الثانية - توهج ناعم جداً */
+        0 0 15px rgba(102, 126, 234, 0.3),     /* الطبقة الثالثة - توهج ناعم جداً */
+        0 0 20px rgba(118, 75, 162, 0.25),     /* الطبقة الرابعة - توهج ناعم جداً */
+        0 0 25px rgba(240, 147, 251, 0.2),    /* الطبقة الخامسة - توهج ناعم جداً */
+        /* Exact Perimeter Border - حدود ناعمة جداً تتبع شكل الـ Tooltip */
+        0 0 0 1px rgba(0, 198, 255, 0.35),
+        0 0 0 2px rgba(102, 126, 234, 0.3),
+        0 0 0 3px rgba(118, 75, 162, 0.25);
+    
+    filter: brightness(1.2);
+}
+
+/* أطراف التوهج كشكل Tooltip - Exact Perimeter مع Highly Rounded Corners */
+.custom-tooltip::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border-radius: 29px; /* يطابق border-radius للـ Tooltip الرئيسي + 4px */
+    background: linear-gradient(135deg,
+        rgba(0, 188, 212, 0.35) 0%,
+        rgba(102, 126, 234, 0.4) 25%,
+        rgba(118, 75, 162, 0.35) 50%,
+        rgba(240, 147, 251, 0.35) 75%,
+        rgba(0, 188, 212, 0.35) 100%);
+    z-index: -1;
+    pointer-events: none;
+    transition: all 0.4s ease;
+    /* Continuous Neon Glow ناعم جداً على الأطراف */
+    box-shadow:
+        0 0 3px rgba(0, 198, 255, 0.3),
+        0 0 6px rgba(102, 126, 234, 0.25),
+        0 0 9px rgba(118, 75, 162, 0.2);
+    /* تأثير الحركة للتدرج اللوني */
+    background-size: 200% 200%;
+    animation: gradientShift 3s ease infinite;
+}
+
+.custom-tooltip.visible::before {
+    opacity: 1;
+    /* توهج نيون ناعم جداً عند الظهور */
+    box-shadow:
+        0 0 4px rgba(0, 198, 255, 0.45),
+        0 0 8px rgba(102, 126, 234, 0.4),
+        0 0 12px rgba(118, 75, 162, 0.35),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+/* تأثير النافذة المنبثقة (Dialog Popup Animation) - شفاف */
+.custom-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    transition: width 0.5s ease, height 0.5s ease;
+    z-index: -1;
+}
+
+.custom-tooltip.visible::after {
+    width: 300%;
+    height: 300%;
+    animation: dialogPopup 0.6s ease-out;
+}
+
+@keyframes dialogPopup {
+    0% {
+        width: 0;
+        height: 0;
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        width: 300%;
+        height: 300%;
+        opacity: 0;
+    }
+}
+
+/* تأثير حركة التدرج اللوني */
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* تأثير الموجة (Wave effect) - شفاف */
+.custom-tooltip .wave-effect {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.15),
+        transparent
+    );
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+    border-radius: 0 0 25px 25px;
+}
+
+.custom-tooltip.visible .wave-effect {
+    transform: scaleX(1);
+    animation: waveAnimation 1.5s ease-in-out infinite;
+}
+
+@keyframes waveAnimation {
+    0%, 100% {
+        transform: scaleX(1) translateX(0);
+    }
+    50% {
+        transform: scaleX(1.2) translateX(10px);
+    }
+}
+
+.section {
+    overflow: hidden;
+}
+
+.category {
+    overflow: hidden;
+}
+
+.icon-button svg {
+    fill: currentColor;
+    width: 19px;
+    height: 19px;
+    padding: 0;
+    margin: 0;
+    display: block;
+}
+
+.icon-button svg text {
+    text-anchor: middle;
+    dominant-baseline: middle;
+}
+
+.icon-button:hover svg {
+    animation: pulse 0.3s ease;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+.icon-button:hover {
+    animation: buttonPulse 0.3s ease;
+}
+
+@keyframes buttonPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1.1); }
+}
+
+.icon {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.separator {
+    height: 1px;
+    background-color: #3d3d3d;
+    margin: 12px 0;
+    transition: all 0.3s ease;
+}
+
+.separator:hover {
+    background-color: #4d4d4d;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 
+                0 0 15px rgba(0, 198, 255, 0.5), 
+                0 0 0 2px rgba(255, 255, 255, 0.1);
+    filter: brightness(1.2);
+    transform: scaleY(1.05);
+}

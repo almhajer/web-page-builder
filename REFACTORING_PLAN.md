@@ -1,102 +1,100 @@
-# خطة إعادة هيكلة المشروع
+# خطة تقسيم ملف extension.ts
 
-## الهدف
-تقسيم ملف `src/extension.ts` (1899 سطر) إلى ملفات أصغر منظمة مع تعليقات واضحة لكل قسم.
+## المشكلة
+ملف [`src/extension.ts`](src/extension.ts) يحتوي على حوالي 96000 حرف، وهو كبير جداً ويصعب صيانته.
 
-## الهيكل المقترح
+## الحل المقترح
+تقسيم الملف إلى عدة ملفات منفصلة، كل ملف مسؤول عن جزء محدد من المشروع.
+
+## الملفات المقترحة
+
+### 1. src/constants/index.ts (موجود بالفعل)
+**الوصف**: الثوابت المستخدمة في المشروع
+**المحتوى**:
+- أنواع الرسائل
+- الثوابت العامة
+
+### 2. src/types/index.ts (موجود بالفعل)
+**الوصف**: الأنواع المشتركة في المشروع
+**المحتوى**:
+- واجهات البيانات
+- أنواع الرسائل
+
+### 3. src/services/editorService.ts (موجود بالفعل)
+**الوصف**: خدمة المحرر
+**المحتوى**:
+- دوال إدارة المحرر
+- دوال حفظ الكود
+
+### 4. src/services/saveService.ts (موجود بالفعل)
+**الوصف**: خدمة الحفظ
+**المحتوى**:
+- دوال حفظ الملفات
+- دوال التصدير
+
+### 5. src/webViewPanel.ts (موجود بالفعل)
+**الوصف**: لوحة Webview الرئيسية
+**المحتوى**:
+- إنشاء اللوحة
+- إدارة دورة حياة اللوحة
+
+### 6. src/webviews/editorWebview.ts (موجود بالفعل)
+**الوصف**: محرر الويب
+**المحتوى**:
+- HTML للمحرر المرئي
+- دوال التفاعل
+
+### 7. src/panels/sidebarPanel.ts (جديد)
+**الوصف**: لوحة Sidebar
+**المحتوى**:
+- HTML للوحة Sidebar
+- عرض الوسوم
+- إرسال الرسائل
+
+### 8. src/extension.ts (محدث)
+**الوصف**: الملف الرئيسي للإضافة
+**المحتوى**:
+- دالة [`activate`](src/extension.ts:7) فقط
+- الثوابت الأساسية
+- تسجيل الأوامر
+- تسجيل Sidebar Provider
+
+## هيكلية الملفات الجديدة
 
 ```
 src/
-├── extension.ts                    (ملف رئيسي - ~200 سطر)
-├── types/
-│   └── index.ts                (أنواع TypeScript)
+├── extension.ts           # الملف الرئيسي (محدث)
 ├── constants/
-│   ├── index.ts                (الثوابت)
-│   └── messages.ts             (أنواع الرسائل)
+│   └── index.ts          # الثوابت
+├── types/
+│   └── index.ts          # الأنواع
 ├── services/
-│   ├── editorService.ts         (خدمة المحرر)
-│   ├── saveService.ts           (خدمة الحفظ)
-│   └── webviewService.ts        (خدمة Webview)
+│   ├── editorService.ts   # خدمة المحرر
+│   └── saveService.ts     # خدمة الحفظ
 ├── panels/
-│   ├── editorPanel.ts           (لوحة المحرر)
-│   └── webPageBuilderPanel.ts   (لوحة WebPageBuilder)
-├── commands/
-│   └── index.ts                (تسجيل الأوامر)
-└── utils/
-    ├── logger.ts                (السجلات)
-    └── helpers.ts               (الدوال المساعدة)
+│   └── sidebarPanel.ts   # لوحة Sidebar (جديد)
+└── webviews/
+    ├── webViewPanel.ts      # لوحة Webview الرئيسية
+    └── editorWebview.ts    # محرر الويب
 ```
-
-## تقسيم الملفات
-
-### 1. `src/types/index.ts`
-- تعريف الأنواع المستخدمة في المشروع
-- واجهات TypeScript
-- أنواع الرسائل
-
-### 2. `src/constants/index.ts`
-- الثوابت المستخدمة في المشروع
-- أسماء الأوامر
-- قيم التكوين
-
-### 3. `src/constants/messages.ts`
-- أنواع الرسائل بين Extension و Webview
-- ثوابت الرسائل
-
-### 4. `src/services/editorService.ts`
-- إدارة EditorPanel
-- إنشاء وعرض المحرر
-- إرسال واستلام الرسائل من المحرر
-
-### 5. `src/services/saveService.ts`
-- دالة حفظ باسم
-- إدارة عملية الحفظ
-- معالجة الأخطاء
-
-### 6. `src/services/webviewService.ts`
-- إدارة WebPageBuilderPanel
-- إنشاء وعرض الـ Webview
-- إرسال واستلام الرسائل من الـ Webview
-
-### 7. `src/panels/editorPanel.ts`
-- إنشاء لوحة المحرر
-- إعداد المحتوى HTML
-- إدارة أحداث المحرر
-
-### 8. `src/panels/webPageBuilderPanel.ts`
-- إنشاء لوحة WebPageBuilder
-- إعداد المحتوى HTML
-- إدارة أحداث الـ Webview
-
-### 9. `src/commands/index.ts`
-- تسجيل جميع الأوامر
-- دالة `activate` الرئيسية
-- دالة `deactivate`
-
-### 10. `src/utils/logger.ts`
-- دوال السجلات
-- مستويات السجلات
-- تنسيق الرسائل
-
-### 11. `src/utils/helpers.ts`
-- دوال مساعدة عامة
-- دوال التحقق
-- دوال التحويل
-
-## المزايا
-
-1. **تنظيم أفضل**: كل ملف له مسؤولية واحدة واضحة
-2. **قابلية الصيانة**: سهل تحديث الملفات الفردية
-3. **قابلية الاختبار**: سهل اختبار كل مكون بشكل منفصل
-4. **قابلية القراءة**: سهل فهم الكود بفضل التعليقات الواضحة
-5. **إعادة الاستخدام**: يمكن إعادة استخدام المكونات في مشاريع أخرى
 
 ## الخطوات
 
-1. إنشاء المجلدات والملفات الجديدة
-2. نقل الكود المناسب لكل ملف
-3. إضافة التعليقات والوثائق
-4. تحديث `src/extension.ts` لاستيراد الملفات الجديدة
-5. اختبار التغييرات
-6. إنشاء commit
-7. إرسال إلى GitHub
+1. إنشاء ملف [`src/panels/sidebarPanel.ts`](src/panels/sidebarPanel.ts) جديد
+2. نقل WebPageBuilderPanel و WebPageBuilderSidebarProvider من [`src/extension.ts`](src/extension.ts) إلى [`src/panels/sidebarPanel.ts`](src/panels/sidebarPanel.ts)
+3. نقل EditorPanel من [`src/extension.ts`](src/extension.ts) إلى [`src/panels/editorPanel.ts`](src/panels/editorPanel.ts)
+4. تحديث [`src/extension.ts`](src/extension.ts) ليحتوي فقط على دالة [`activate`](src/extension.ts:7) والثوابت
+5. تحديث [`README.md`](README.md) ليعكس الهيكلية الجديدة
+
+## المزايا
+
+- **سهولة الصيانة**: كل ملف مسؤول عن جزء محدد
+- **وضوح الكود**: الكود منظم وسهل الفهم
+- **قابلية التوسع**: يمكن إضافة ملفات جديدة بسهولة
+- **فصل المسؤوليات**: فصل واضح بين المكونات المختلفة
+
+## التطوير المستقبلي
+
+- [ ] إضافة مزيد من الميزات
+- [ ] تحسين الأداء
+- [ ] إضافة الاختبارات

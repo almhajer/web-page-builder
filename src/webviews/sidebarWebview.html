@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Page Builder</title>
+    <link rel="stylesheet" href="sidebar.css">
+</head>
+<body>
+    <div class="separator" onclick="toggleCategory('root-elements')">
+        <span class="separator-text">
+            <span class="separator-icon">▼</span>
+            العناصر الجذرية والأساسية
+        </span>
+    </div>
+
+    <!-- العناصر الجذرية والأساسية -->
+    <div class="category" id="category-root-elements">
+        <div class="section">
+            <button class="icon-button" onclick="sendMessage('insertTag', 'html')" data-tooltip="<html>" title="html">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <text x="7" y="16" font-size="6" fill="currentColor"></></text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'head')" data-tooltip="<head>" title="head">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="6" fill="none" stroke="currentColor"/>
+                    <circle cx="6" cy="6" r="1.5" fill="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'body')" data-tooltip="<body>" title="body">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <line x1="6" y1="8" x2="18" y2="8" stroke="currentColor"/>
+                    <line x1="6" y1="12" x2="18" y2="12" stroke="currentColor"/>
+                    <line x1="6" y1="16" x2="12" y2="16" stroke="currentColor"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <!-- / العناصر الجذرية والأساسية -->
+
+    <div class="separator" onclick="toggleCategory('metadata')">
+        <span class="separator-text">
+            <span class="separator-icon">▼</span>
+            بيانات الميتا
+        </span>
+    </div>
+
+    <!-- بيانات الميتا -->
+    <div class="category" id="category-metadata">
+        <div class="section">
+            <button class="icon-button" onclick="sendMessage('insertTag', 'title')" data-tooltip="<title>" title="title">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="6" fill="none" stroke="currentColor"/>
+                    <line x1="6" y1="6" x2="18" y2="6" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'base')" data-tooltip="<base>" title="base">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M12 2l3 6h-6l3-6z" fill="none" stroke="currentColor"/>
+                    <line x1="12" y1="8" x2="12" y2="22" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'link')" data-tooltip="<link>" title="link">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke="currentColor"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'meta')" data-tooltip="<meta>" title="meta">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <circle cx="8" cy="8" r="2" fill="currentColor"/>
+                    <line x1="12" y1="8" x2="20" y2="8" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'style')" data-tooltip="<style>" title="style">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <path d="M8 8l8 8M16 8l-8 8" stroke="currentColor"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <!-- / بيانات الميتا -->
+
+    <div class="separator" onclick="toggleCategory('sections')">
+        <span class="separator-text">
+            <span class="separator-icon">▼</span>
+            أقسام المحتوى
+        </span>
+    </div>
+
+    <!-- أقسام المحتوى -->
+    <div class="category" id="category-sections">
+        <div class="section">
+            <button class="icon-button" onclick="sendMessage('insertTag', 'article')" data-tooltip="<article>" title="article">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <line x1="6" y1="8" x2="18" y2="8" stroke="currentColor"/>
+                    <line x1="6" y1="12" x2="18" y2="12" stroke="currentColor"/>
+                    <line x1="6" y1="16" x2="12" y2="16" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'section')" data-tooltip="<section>" title="section">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="5" width="18" height="14" fill="none" stroke="currentColor"/>
+                    <line x1="3" y1="9" x2="21" y2="9" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'nav')" data-tooltip="<nav>" title="nav">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor"/>
+                    <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor"/>
+                    <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'aside')" data-tooltip="<aside>" title="aside">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="14" y="3" width="7" height="18" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'h1')" data-tooltip="<h1>" title="h1">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="12" y="16" font-size="14" font-weight="bold" fill="currentColor" text-anchor="middle">H1</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'h2')" data-tooltip="<h2>" title="h2">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="12" y="16" font-size="13" font-weight="bold" fill="currentColor" text-anchor="middle">H2</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'h3')" data-tooltip="<h3>" title="h3">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="12" y="16" font-size="12" font-weight="bold" fill="currentColor" text-anchor="middle">H3</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'h4')" data-tooltip="<h4>" title="h4">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="12" y="16" font-size="11" font-weight="bold" fill="currentColor" text-anchor="middle">H4</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'h5')" data-tooltip="<h5>" title="h5">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="12" y="16" font-size="10" font-weight="bold" fill="currentColor" text-anchor="middle">H5</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'h6')" data-tooltip="<h6>" title="h6">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="12" y="16" font-size="9" font-weight="bold" fill="currentColor" text-anchor="middle">H6</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'header')" data-tooltip="<header>" title="header">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="6" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'footer')" data-tooltip="<footer>" title="footer">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="15" width="18" height="6" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'address')" data-tooltip="<address>" title="address">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="none" stroke="currentColor"/>
+                    <circle cx="12" cy="9" r="2.5" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'main')" data-tooltip="<main>" title="main">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <rect x="6" y="6" width="12" height="12" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <!-- / أقسام المحتوى -->
+
+    <div class="separator" onclick="toggleCategory('grouping')">
+        <span class="separator-text">
+            <span class="separator-icon">▼</span>
+            تنظيم النصوص
+        </span>
+    </div>
+
+    <!-- تنظيم النصوص -->
+    <div class="category" id="category-grouping">
+        <div class="section">
+            <button class="icon-button" onclick="sendMessage('insertTag', 'p')" data-tooltip="<p>" title="p">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <line x1="4" y1="6" x2="20" y2="6" stroke="currentColor"/>
+                    <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor"/>
+                    <line x1="4" y1="18" x2="12" y2="18" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'hr')" data-tooltip="<hr>" title="hr">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'pre')" data-tooltip="<pre>" title="pre">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <polyline points="7 10 5 12 7 14" fill="none" stroke="currentColor"/>
+                    <polyline points="17 10 19 12 17 14" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'blockquote')" data-tooltip="<blockquote>" title="blockquote">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M6 17h3l2-4V7H5v6h3zM13 17h3l2-4V7h-6v6h3z" fill="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'ol')" data-tooltip="<ol>" title="ol">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="5" y="8" font-size="9" fill="currentColor">1</text>
+                    <line x1="10" y1="6" x2="20" y2="6" stroke="currentColor"/>
+                    <text x="5" y="14" font-size="9" fill="currentColor">2</text>
+                    <line x1="10" y1="12" x2="20" y2="12" stroke="currentColor"/>
+                    <text x="5" y="20" font-size="9" fill="currentColor">3</text>
+                    <line x1="10" y1="18" x2="20" y2="18" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'ul')" data-tooltip="<ul>" title="ul">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <circle cx="5" cy="6" r="2" fill="currentColor"/>
+                    <line x1="10" y1="6" x2="20" y2="6" stroke="currentColor"/>
+                    <circle cx="5" cy="12" r="2" fill="currentColor"/>
+                    <line x1="10" y1="12" x2="20" y2="12" stroke="currentColor"/>
+                    <circle cx="5" cy="18" r="2" fill="currentColor"/>
+                    <line x1="10" y1="18" x2="20" y2="18" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'li')" data-tooltip="<li>" title="li">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <circle cx="5" cy="12" r="2" fill="currentColor"/>
+                    <line x1="10" y1="12" x2="20" y2="12" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'dl')" data-tooltip="<dl>" title="dl">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <text x="12" y="10" font-size="7" fill="currentColor" text-anchor="middle">dt</text>
+                    <text x="12" y="18" font-size="7" fill="currentColor" text-anchor="middle">dd</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'dt')" data-tooltip="<dt>" title="dt">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="4" width="18" height="16" fill="none" stroke="currentColor"/>
+                    <text x="12" y="10" font-size="9" font-weight="bold" fill="currentColor" text-anchor="middle">dt</text>
+                    <line x1="6" y1="14" x2="18" y2="14" stroke="currentColor" stroke-width="2"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'dd')" data-tooltip="<dd>" title="dd">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="4" width="18" height="16" fill="none" stroke="currentColor"/>
+                    <circle cx="7" cy="10" r="2" fill="currentColor"/>
+                    <line x1="12" y1="10" x2="18" y2="10" stroke="currentColor"/>
+                    <line x1="12" y1="14" x2="18" y2="14" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'figure')" data-tooltip="<figure>" title="figure">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <circle cx="12" cy="9" r="3" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'figcaption')" data-tooltip="<figcaption>" title="figcaption">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="4" fill="none" stroke="currentColor"/>
+                    <line x1="6" y1="5" x2="18" y2="5" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'div')" data-tooltip="<div>" title="div">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <!-- / تنظيم النصوص -->
+
+    <div class="separator" onclick="toggleCategory('text-level')">
+        <span class="separator-text">
+            <span class="separator-icon">▼</span>
+            النصوص السطرية
+        </span>
+    </div>
+
+    <!-- النصوص السطرية -->
+    <div class="category" id="category-text-level">
+        <div class="section">
+            <button class="icon-button" onclick="sendMessage('insertTag', 'a')" data-tooltip="<a>" title="a">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke="currentColor"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'em')" data-tooltip="<em>" title="em">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="8" y="18" font-size="10" font-style="italic" fill="currentColor">I</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'strong')" data-tooltip="<strong>" title="strong">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="7" y="18" font-size="10" font-weight="bold" fill="currentColor">B</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'small')" data-tooltip="<small>" title="small">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="7" y="18" font-size="6" fill="currentColor">Aa</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 's')" data-tooltip="<s>" title="s">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="8" y="14" font-size="10" fill="currentColor">S</text>
+                    <line x1="7" y1="12" x2="17" y2="12" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'cite')" data-tooltip="<cite>" title="cite">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M6 17h3l2-4V7H5v6h3zM13 17h3l2-4V7h-6v6h3z" fill="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'q')" data-tooltip="<q>" title="q">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M6 17h3l2-4V7H5v6h3zM13 17h3l2-4V7h-6v6h3z" fill="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'dfn')" data-tooltip="<dfn>" title="dfn">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="4" width="18" height="16" fill="none" stroke="currentColor"/>
+                    <text x="12" y="10" font-size="8" font-weight="bold" fill="currentColor" text-anchor="middle">def</text>
+                    <line x1="6" y1="14" x2="18" y2="14" stroke="currentColor" stroke-dasharray="2,2"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'abbr')" data-tooltip="<abbr>" title="abbr">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="12" y="14" font-size="9" fill="currentColor" text-anchor="middle">Abc</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'time')" data-tooltip="<time>" title="time">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor"/>
+                    <polyline points="12 6 12 12 16 14" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'code')" data-tooltip="<code>" title="code">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <polyline points="16 18 22 12 16 6" fill="none" stroke="currentColor"/>
+                    <polyline points="8 6 2 12 8 18" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'sub')" data-tooltip="<sub>" title="sub">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="8" y="14" font-size="10" fill="currentColor">x</text>
+                    <text x="14" y="18" font-size="7" fill="currentColor">2</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'sup')" data-tooltip="<sup>" title="sup">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="8" y="18" font-size="10" fill="currentColor">x</text>
+                    <text x="14" y="10" font-size="7" fill="currentColor">2</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'i')" data-tooltip="<i>" title="i">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="9" y="18" font-size="10" font-style="italic" fill="currentColor">I</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'b')" data-tooltip="<b>" title="b">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="8" y="18" font-size="10" font-weight="bold" fill="currentColor">B</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'u')" data-tooltip="<u>" title="u">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="8" y="16" font-size="10" fill="currentColor">U</text>
+                    <line x1="7" y1="18" x2="17" y2="18" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'mark')" data-tooltip="<mark>" title="mark">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'span')" data-tooltip="<span>" title="span">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="6" y="6" width="12" height="12" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'br')" data-tooltip="<br>" title="br">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M5 12h14" stroke="currentColor"/>
+                    <path d="M12 5v14" stroke="currentColor"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <!-- / النصوص السطرية -->
+
+    <div class="separator" onclick="toggleCategory('embedded')">
+        <span class="separator-text">
+            <span class="separator-icon">▼</span>
+            المحتوى المدمج
+        </span>
+    </div>
+
+    <!-- المحتوى المدمج -->
+    <div class="category" id="category-embedded">
+        <div class="section">
+            <button class="icon-button" onclick="sendMessage('insertTag', 'picture')" data-tooltip="<picture>" title="picture">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                    <path d="M21 15l-5-5L5 21" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'img')" data-tooltip="<img>" title="img">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor"/>
+                    <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                    <path d="M21 15l-5-5L5 21" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'iframe')" data-tooltip="<iframe>" title="iframe">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'video')" data-tooltip="<video>" title="video">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="2" y="4" width="20" height="16" fill="none" stroke="currentColor"/>
+                    <polygon points="10 8 16 12 10 16" fill="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'audio')" data-tooltip="<audio>" title="audio">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M9 18V5l12-2v13" fill="none" stroke="currentColor"/>
+                    <circle cx="6" cy="18" r="3" fill="none" stroke="currentColor"/>
+                    <circle cx="18" cy="16" r="3" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'source')" data-tooltip="<source>" title="source">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'canvas')" data-tooltip="<canvas>" title="canvas">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <path d="M8 8l8 8M16 8l-8 8" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'svg')" data-tooltip="<svg>" title="svg">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <!-- / المحتوى المدمج -->
+
+    <div class="separator" onclick="toggleCategory('tables')">
+        <span class="separator-text">
+            <span class="separator-icon">▼</span>
+            الجداول
+        </span>
+    </div>
+
+    <!-- الجداول -->
+    <div class="category" id="category-tables">
+        <div class="section">
+            <button class="icon-button" onclick="sendMessage('insertTag', 'table')" data-tooltip="<table>" title="table">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <line x1="3" y1="9" x2="21" y2="9" stroke="currentColor"/>
+                    <line x1="3" y1="15" x2="21" y2="15" stroke="currentColor"/>
+                    <line x1="9" y1="3" x2="9" y2="21" stroke="currentColor"/>
+                    <line x1="15" y1="3" x2="15" y2="21" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'caption')" data-tooltip="<caption>" title="caption">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="4" fill="none" stroke="currentColor"/>
+                    <line x1="6" y1="5" x2="18" y2="5" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'thead')" data-tooltip="<thead>" title="thead">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="6" fill="none" stroke="currentColor"/>
+                    <line x1="9" y1="3" x2="9" y2="9" stroke="currentColor"/>
+                    <line x1="15" y1="3" x2="15" y2="9" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'tbody')" data-tooltip="<tbody>" title="tbody">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="9" width="18" height="12" fill="none" stroke="currentColor"/>
+                    <line x1="9" y1="9" x2="9" y2="21" stroke="currentColor"/>
+                    <line x1="15" y1="9" x2="15" y2="21" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'tfoot')" data-tooltip="<tfoot>" title="tfoot">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="15" width="18" height="6" fill="none" stroke="currentColor"/>
+                    <line x1="9" y1="15" x2="9" y2="21" stroke="currentColor"/>
+                    <line x1="15" y1="15" x2="15" y2="21" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'tr')" data-tooltip="<tr>" title="tr">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="8" width="18" height="8" fill="none" stroke="currentColor"/>
+                    <line x1="9" y1="8" x2="9" y2="16" stroke="currentColor"/>
+                    <line x1="15" y1="8" x2="15" y2="16" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'th')" data-tooltip="<th>" title="th">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="4" y="8" width="16" height="8" fill="none" stroke="currentColor"/>
+                    <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'td')" data-tooltip="<td>" title="td">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="4" y="8" width="16" height="8" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <!-- / الجداول -->
+
+    <div class="separator" onclick="toggleCategory('forms')">
+        <span class="separator-text">
+            <span class="separator-icon">▼</span>
+            النماذج
+        </span>
+    </div>
+
+    <!-- النماذج -->
+    <div class="category" id="category-forms">
+        <div class="section">
+            <button class="icon-button" onclick="sendMessage('insertTag', 'form')" data-tooltip="<form>" title="form">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <line x1="6" y1="8" x2="18" y2="8" stroke="currentColor"/>
+                    <line x1="6" y1="12" x2="18" y2="12" stroke="currentColor"/>
+                    <line x1="6" y1="16" x2="12" y2="16" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'label')" data-tooltip="<label>" title="label">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M4 4h16v16H4z" fill="none" stroke="currentColor"/>
+                    <path d="M8 8h8M8 12h8M8 16h4" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'input')" data-tooltip="<input>" title="input">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="8" width="18" height="8" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'button')" data-tooltip="<button>" title="button">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="4" y="8" width="16" height="8" rx="2" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'select')" data-tooltip="<select>" title="select">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <line x1="6" y1="10" x2="14" y2="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M14 14l3 3 3-3" fill="none" stroke="currentColor" stroke-width="2"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'option')" data-tooltip="<option>" title="option">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="8" width="18" height="4" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'textarea')" data-tooltip="<textarea>" title="textarea">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="5" width="18" height="14" fill="none" stroke="currentColor"/>
+                    <line x1="6" y1="8" x2="18" y2="8" stroke="currentColor"/>
+                    <line x1="6" y1="11" x2="18" y2="11" stroke="currentColor"/>
+                    <line x1="6" y1="14" x2="12" y2="14" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'output')" data-tooltip="<output>" title="output">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="8" width="18" height="8" fill="none" stroke="currentColor"/>
+                    <text x="12" y="14" font-size="7" fill="currentColor" text-anchor="middle">out</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'progress')" data-tooltip="<progress>" title="progress">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="10" width="18" height="4" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <rect x="3" y="10" width="6" height="4" fill="currentColor">
+                        <animate attributeName="x" values="3;15;3" dur="1.5s" repeatCount="indefinite"/>
+                        <animate attributeName="width" values="6;6;6" dur="1.5s" repeatCount="indefinite"/>
+                    </rect>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'meter')" data-tooltip="<meter>" title="meter">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="10" width="18" height="4" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <rect x="3" y="10" width="9" height="4" fill="currentColor"/>
+                    <text x="3" y="8" font-size="5" fill="currentColor">0</text>
+                    <text x="12" y="8" font-size="5" fill="currentColor" text-anchor="middle">50</text>
+                    <text x="21" y="8" font-size="5" fill="currentColor" text-anchor="end">100</text>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <!-- / النماذج -->
+
+    <div class="separator" onclick="toggleCategory('interactive')">
+        <span class="separator-text">
+            <span class="separator-icon">▼</span>
+            العناصر التفاعلية
+        </span>
+    </div>
+
+    <!-- العناصر التفاعلية -->
+    <div class="category" id="category-interactive">
+        <div class="section">
+            <button class="icon-button" onclick="sendMessage('insertTag', 'details')" data-tooltip="<details>" title="details">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <path d="M8 12l3 3 3-3" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'summary')" data-tooltip="<summary>" title="summary">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="6" fill="none" stroke="currentColor"/>
+                    <line x1="6" y1="6" x2="18" y2="6" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'dialog')" data-tooltip="<dialog>" title="dialog">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="6" width="18" height="12" fill="none" stroke="currentColor"/>
+                    <circle cx="8" cy="12" r="2" fill="currentColor"/>
+                    <line x1="12" y1="10" x2="18" y2="10" stroke="currentColor"/>
+                    <line x1="12" y1="14" x2="16" y2="14" stroke="currentColor"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <!-- / العناصر التفاعلية -->
+
+    <div class="separator" onclick="toggleCategory('editing')">
+        <span class="separator-text">
+            <span class="separator-icon">▼</span>
+            تعديل النصوص
+        </span>
+    </div>
+
+    <!-- تعديل النصوص -->
+    <div class="category" id="category-editing">
+        <div class="section">
+            <button class="icon-button" onclick="sendMessage('insertTag', 'ins')" data-tooltip="<ins>" title="ins">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor"/>
+                    <path d="M12 4v16" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'del')" data-tooltip="<del>" title="del">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'kbd')" data-tooltip="<kbd>" title="kbd">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="4" y="8" width="16" height="8" fill="none" stroke="currentColor"/>
+                    <text x="12" y="14" font-size="8" fill="currentColor" text-anchor="middle">⌨</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'samp')" data-tooltip="<samp>" title="samp">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="6" width="18" height="12" fill="none" stroke="currentColor"/>
+                    <text x="12" y="14" font-size="8" fill="currentColor" text-anchor="middle">code</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'var')" data-tooltip="<var>" title="var">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <text x="12" y="15" font-size="11" font-style="italic" fill="currentColor" text-anchor="middle">x</text>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'wbr')" data-tooltip="<wbr>" title="wbr">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M5 12h14" stroke="currentColor"/>
+                    <path d="M12 5v14" stroke="currentColor"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <!-- / تعديل النصوص -->
+
+    <div class="separator" onclick="toggleCategory('scripting')">
+        <span class="separator-text">
+            <span class="separator-icon">▼</span>
+            السكربت
+        </span>
+    </div>
+
+    <!-- السكربت -->
+    <div class="category" id="category-scripting">
+        <div class="section">
+            <button class="icon-button" onclick="sendMessage('insertTag', 'script')" data-tooltip="<script>" title="script">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <polyline points="16 18 22 12 16 6" fill="none" stroke="currentColor"/>
+                    <polyline points="8 6 2 12 8 18" fill="none" stroke="currentColor"/>
+                </svg>
+            </button>
+            <button class="icon-button" onclick="sendMessage('insertTag', 'noscript')" data-tooltip="<noscript>" title="noscript">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor"/>
+                    <text x="12" y="14" font-size="7" fill="currentColor" text-anchor="middle">no</text>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <!-- / السكربت -->
+
+    <script src="sidebar.js"></script>
+</body>
+</html>

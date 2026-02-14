@@ -50,9 +50,9 @@ html[dir="rtl"] .category {
     color: #888888;
     margin-bottom: 8px;
     padding: 4px 8px;
-    text-transform: uppercase;
     letter-spacing: 0.5px;
     text-align: center;
+    white-space: nowrap;
 }
 
 .separator {
@@ -100,7 +100,6 @@ html[dir="rtl"] .separator {
     color: #888888;
     font-size: 13px;
     font-weight: bold;
-    text-transform: uppercase;
     letter-spacing: 0.5px;
     display: flex;
     align-items: center;
@@ -109,6 +108,7 @@ html[dir="rtl"] .separator {
     border-radius: 4px;
     left: 50%;
     transform: translateX(-50%);
+    white-space: nowrap;
 }
 
 /* دعم RTL و LTR للـ separator-text */

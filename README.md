@@ -2,7 +2,7 @@
 
 # 🌐 Web Page Builder
 
-![Version](https://img.shields.io/badge/version-0.0.0-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-0.0.3-blue?style=for-the-badge)
 ![VS Code](https://img.shields.io/badge/VS%20Code-1.74.0+-green?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-orange?style=for-the-badge)
 

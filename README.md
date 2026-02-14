@@ -314,7 +314,7 @@ MIT License
 **صنع بـ ❤️ للمجتمع العربي**
 
 [![4Techs.net](https://img.shields.io/badge/🌐-4Techs.net-blue?style=for-the-badge)](https://www.4Techs.net)
-[![VS Marketplace](https://img.shields.io/badge/📦-VS%20Marketplace-green?style=for-the-badge)](https://marketplace.visualstudio.com/publisher/Arabic-language)
+[![VS Marketplace](https://img.shields.io/badge/📦-VS%20Marketplace-green?style=for-the-badge)](https://marketplace.visualstudio.com/publishers/Arabic-language)
 
 ---
 

@@ -2,9 +2,27 @@
   "name": "web-page-builder",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.0.1",
+  "version": "0.0.2",
    "publisher": "Arabic-language",
   "icon": "source/icon.png",
+  "license": "MIT",
+  "keywords": [
+    "html",
+    "editor",
+    "html editor",
+    "web editor",
+    "webview",
+    "wysiwyg",
+    "vscode",
+    "visual studio code",
+    "web development",
+    "frontend",
+    "html preview",
+    "page editor",
+    "developer tools",
+    "custom editor",
+    "html tools"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/almhajer/web-page-builder.git"

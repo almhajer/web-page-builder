@@ -10,6 +10,8 @@
 
 ![Web Page Builder Banner](source/icon.png)
 
+![Web Page Builder Demo](source/Web-Page-Builder.gif)
+
 ---
 
 </div>

@@ -2,7 +2,7 @@
   "name": "web-page-builder",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.0.2",
+  "version": "0.0.3",
    "publisher": "Arabic-language",
   "icon": "source/icon.png",
   "license": "MIT",
